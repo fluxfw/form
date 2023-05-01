@@ -1,0 +1,108 @@
+:host {
+    height: auto;
+    max-width: 100%;
+    width: 100%;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+}
+
+label {
+    display: block;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: auto;
+    width: 100%;
+}
+
+.label {
+    font-size: 16px;
+    font-weight: bold;
+    height: auto;
+    margin-top: 2px;
+    width: 100%;
+}
+
+input, select, textarea {
+    background-color: var(--flux-form-input-background-color);
+    border: 1px solid var(--flux-form-input-border-color);
+    border-radius: 0;
+    box-sizing: content-box;
+    color: var(--flux-form-input-foreground-color);
+    cursor: default;
+    display: block;
+    font-family: inherit;
+    font-size: 16px;
+    height: 25px;
+    outline: none;
+    padding: 2px 5px;
+    width: calc(100% - 12px);
+}
+
+label:not(:first-child) .label:empty + :is(input, select, textarea) {
+    border-top: none;
+}
+
+:is(input:not([type="checkbox"]):not([type="color"]), textarea):not(:disabled):not([readonly]) {
+    cursor: text;
+}
+
+:is(input[type="checkbox"], input[type="color"]):not(:disabled) {
+    cursor: pointer;
+}
+
+.label:not(:empty) + :is(input, textarea)[readonly] {
+    background-color: transparent;
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+}
+
+input[type="checkbox"] {
+    width: 25px;
+}
+
+select[multiple] {
+    height: auto;
+}
+
+textarea {
+    height: 40px;
+    min-height: 40px;
+    resize: vertical;
+}
+
+.label:empty + :is(input, select, textarea):not(:disabled):invalid {
+    border-bottom-color: var(--flux-form-input-invalid-border-color);
+}
+
+.label:not(:empty) + :is(input, select, textarea):not(:disabled):invalid {
+    border-color: var(--flux-form-input-invalid-border-color);
+}
+
+:is(input, select, textarea):not(:disabled):not([readonly]):focus-visible {
+    outline: 2px solid var(--flux-form-input-focus-outline-color);
+    outline-offset: -2px;
+}
+
+:is(input, select, textarea):disabled {
+    opacity: 0.6;
+}
+
+.subtitle {
+    font-size: 14px;
+    font-style: italic;
+    height: auto;
+    margin: 2px 0;
+    opacity: 0.9;
+    width: 100%;
+}
+
+:is(.label, .subtitle):empty {
+    display: none;
+}
