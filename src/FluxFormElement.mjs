@@ -329,7 +329,7 @@ export class FluxFormElement extends HTMLElement {
             case input_element.type === INPUT_TYPE_NUMBER:
                 return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
 
-            case input_element.type === INPUT_TYPE_SELECT && input_element.multiple:
+            case input_element instanceof HTMLSelectElement && input_element.multiple:
                 return Array.from(input_element.querySelectorAll("option")).filter(option_element => option_element.selected).map(option_element => option_element.value);
 
             default:
@@ -366,7 +366,7 @@ export class FluxFormElement extends HTMLElement {
                 input_element.valueAsNumber = value !== null ? value : NaN;
                 break;
 
-            case input_element.type === INPUT_TYPE_SELECT && input_element.multiple: {
+            case input_element instanceof HTMLSelectElement && input_element.multiple: {
                 const _value = value ?? [];
                 for (const option_element of input_element.querySelectorAll("option")) {
                     option_element.selected = _value.includes(option_element.value);
