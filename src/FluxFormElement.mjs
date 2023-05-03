@@ -86,16 +86,16 @@ export class FluxFormElement extends HTMLElement {
         return this.#input_elements.map(input_element => ({
             disabled: input_element.disabled,
             "input-mode": input_element.inputMode ?? "",
-            label: input_element.previousElementSibling.innerText,
+            label: input_element.parentElement.querySelector(".label").innerText,
             max: input_element.max ?? "",
             "max-length": input_element.maxLength ?? -1,
             min: input_element.min ?? "",
             "min-length": input_element.minLength ?? -1,
             multiple: input_element.multiple ?? false,
             name: input_element.name,
-            options: Array.from(input_element.querySelectorAll("option")).map(option_element => ({
+            options: Array.from(input_element.querySelectorAll("option")).filter(option_element => input_element.multiple || option_element.value !== "").map(option_element => ({
                 disabled: option_element.disabled,
-                label: option_element.label,
+                label: option_element.text,
                 title: option_element.title,
                 value: option_element.value
             })),
@@ -104,7 +104,7 @@ export class FluxFormElement extends HTMLElement {
             "read-only": input_element.readOnly ?? false,
             required: input_element.required,
             step: input_element.step ?? "",
-            subtitle: input_element.nextElementSibling.innerText,
+            subtitle: input_element.parentElement.querySelector(".subtitle").innerText,
             title: input_element.title,
             type: input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type,
             value: this.#getValueFromInputElement(
@@ -171,19 +171,27 @@ export class FluxFormElement extends HTMLElement {
             }
 
             if (type === INPUT_TYPE_SELECT) {
-                const options = input.options ?? [];
+                const options = [
+                    ...!input_element.multiple ? [
+                        {
+                            label: "--",
+                            value: ""
+                        }
+                    ] : [],
+                    ...input.options ?? []
+                ];
 
                 for (const option of options) {
                     const option_element = document.createElement("option");
 
                     option_element.disabled = option.disabled ?? false;
 
-                    option_element.label = option.label;
-
                     const title = option.title ?? "";
                     if (title !== "") {
                         option_element.title = title;
                     }
+
+                    option_element.text = option.label;
 
                     option_element.value = option.value;
 
@@ -242,6 +250,12 @@ export class FluxFormElement extends HTMLElement {
             });
 
             input_element.addEventListener("input", () => {
+                if (input_element instanceof HTMLSelectElement && input_element.multiple) {
+                    this.#updateMultipleSelectClearButton(
+                        input_element
+                    );
+                }
+
                 this.dispatchEvent(new CustomEvent(FLUX_FORM_INPUT_EVENT, {
                     detail: {
                         name: input_element.name,
@@ -253,6 +267,21 @@ export class FluxFormElement extends HTMLElement {
             });
 
             container_element.appendChild(input_element);
+
+            if (input_element instanceof HTMLSelectElement && input_element.multiple) {
+                const clear_button = document.createElement("button");
+                clear_button.innerText = "X";
+                clear_button.type = "button";
+                clear_button.addEventListener("click", () => {
+                    this.#setValueToInputElement(
+                        input_element
+                    );
+                });
+                container_element.appendChild(clear_button);
+                this.#updateMultipleSelectClearButton(
+                    input_element
+                );
+            }
 
             const subtitle_element = document.createElement("div");
             subtitle_element.classList.add("subtitle");
@@ -371,6 +400,9 @@ export class FluxFormElement extends HTMLElement {
                 for (const option_element of input_element.querySelectorAll("option")) {
                     option_element.selected = _value.includes(option_element.value);
                 }
+                this.#updateMultipleSelectClearButton(
+                    input_element
+                );
             }
                 break;
 
@@ -378,6 +410,16 @@ export class FluxFormElement extends HTMLElement {
                 input_element.value = value ?? "";
                 break;
         }
+    }
+
+    /**
+     * @param {HTMLSelectElement} input_element
+     * @returns {void}
+     */
+    #updateMultipleSelectClearButton(input_element) {
+        input_element.nextElementSibling.disabled = this.#getValueFromInputElement(
+            input_element
+        ).length === 0;
     }
 }
 

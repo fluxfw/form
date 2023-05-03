@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2023-05-03-5
+
+Changes:
+
+- Clear button on multiple select
+- Empty option on non-multiple select
+
 ## v2023-05-03-4
 
 Changes:

@@ -95,6 +95,14 @@ textarea {
     opacity: 0.6;
 }
 
+button {
+    cursor: default;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
 .subtitle {
     font-size: 14px;
     font-style: italic;
