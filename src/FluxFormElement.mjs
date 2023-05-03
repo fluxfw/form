@@ -96,7 +96,6 @@ export class FluxFormElement extends HTMLElement {
             options: Array.from(input_element.querySelectorAll("option")).map(option_element => ({
                 disabled: option_element.disabled,
                 label: option_element.label,
-                selected: option_element.selected,
                 title: option_element.title,
                 value: option_element.value
             })),
@@ -180,8 +179,6 @@ export class FluxFormElement extends HTMLElement {
                     option_element.disabled = option.disabled ?? false;
 
                     option_element.label = option.label;
-
-                    option_element.selected = option.selected ?? false;
 
                     const title = option.title ?? "";
                     if (title !== "") {
@@ -325,7 +322,19 @@ export class FluxFormElement extends HTMLElement {
      * @returns {Value}
      */
     #getValueFromInputElement(input_element) {
-        return input_element.type === INPUT_TYPE_NUMBER ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.type === INPUT_TYPE_CHECKBOX ? input_element.checked : input_element.value;
+        switch (true) {
+            case input_element.type === INPUT_TYPE_CHECKBOX:
+                return input_element.checked;
+
+            case input_element.type === INPUT_TYPE_NUMBER:
+                return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
+
+            case input_element.type === INPUT_TYPE_SELECT && input_element.multiple:
+                return Array.from(input_element.querySelectorAll("option")).filter(option_element => option_element.selected).map(option_element => option_element.value);
+
+            default:
+                return input_element.value;
+        }
     }
 
     /**
@@ -348,14 +357,26 @@ export class FluxFormElement extends HTMLElement {
      * @returns {void}
      */
     #setValueToInputElement(input_element, value = null) {
-        if (input_element.type === INPUT_TYPE_NUMBER) {
-            input_element.valueAsNumber = value !== null ? value : NaN;
-        } else {
-            if (input_element.type === INPUT_TYPE_CHECKBOX) {
+        switch (true) {
+            case input_element.type === INPUT_TYPE_CHECKBOX:
                 input_element.checked = value ?? false;
-            } else {
-                input_element.value = value ?? "";
+                break;
+
+            case input_element.type === INPUT_TYPE_NUMBER:
+                input_element.valueAsNumber = value !== null ? value : NaN;
+                break;
+
+            case input_element.type === INPUT_TYPE_SELECT && input_element.multiple: {
+                const _value = value ?? [];
+                for (const option_element of input_element.querySelectorAll("option")) {
+                    option_element.selected = _value.includes(option_element.value);
+                }
             }
+                break;
+
+            default:
+                input_element.value = value ?? "";
+                break;
         }
     }
 }

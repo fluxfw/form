@@ -1,3 +1,3 @@
 /**
- * @typedef {{disabled?: boolean, label: string, selected?: boolean, title?: string, value: string}} Option
+ * @typedef {{disabled?: boolean, label: string, title?: string, value: string}} Option
  */

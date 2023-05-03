@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-03-3
+
+Changes:
+
+- Multiple select value
+
 ## v2023-05-03-2
 
 Changes:

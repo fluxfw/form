@@ -1,3 +1,3 @@
 /**
- * @typedef {string | number | boolean | null} Value
+ * @typedef {string | number | boolean | string[] | null} Value
  */
