@@ -349,7 +349,7 @@ export class FluxFormElement extends HTMLElement {
      */
     #setValueToInputElement(input_element, value = null) {
         if (input_element.type === INPUT_TYPE_NUMBER) {
-            input_element.valueAsNumber = value;
+            input_element.valueAsNumber = value !== null ? value : NaN;
         } else {
             if (input_element.type === INPUT_TYPE_CHECKBOX) {
                 input_element.checked = value ?? false;
