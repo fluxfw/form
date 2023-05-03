@@ -233,11 +233,6 @@ export class FluxFormElement extends HTMLElement {
                 input_element.type = type;
             }
 
-            this.#setValueToInputElement(
-                input_element,
-                input.value ?? null
-            );
-
             input_element.addEventListener("change", () => {
                 this.dispatchEvent(new CustomEvent(FLUX_FORM_CHANGE_EVENT, {
                     detail: {
@@ -278,10 +273,12 @@ export class FluxFormElement extends HTMLElement {
                     );
                 });
                 container_element.appendChild(clear_button);
-                this.#updateMultipleSelectClearButton(
-                    input_element
-                );
             }
+
+            this.#setValueToInputElement(
+                input_element,
+                input.value ?? null
+            );
 
             const subtitle_element = document.createElement("div");
             subtitle_element.classList.add("subtitle");
