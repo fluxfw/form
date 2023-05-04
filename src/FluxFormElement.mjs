@@ -1,4 +1,5 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
+import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
@@ -17,9 +18,6 @@ flux_css_api.adopt(
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
 );
-
-export const FLUX_FORM_CHANGE_EVENT = "flux-form-change";
-export const FLUX_FORM_INPUT_EVENT = "flux-form-input";
 
 export class FluxFormElement extends HTMLElement {
     /**
@@ -234,7 +232,7 @@ export class FluxFormElement extends HTMLElement {
             }
 
             input_element.addEventListener("change", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_CHANGE_EVENT, {
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
                     detail: {
                         name: input_element.name,
                         value: this.#getValueFromInputElement(
@@ -251,7 +249,7 @@ export class FluxFormElement extends HTMLElement {
                     );
                 }
 
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_INPUT_EVENT, {
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
                     detail: {
                         name: input_element.name,
                         value: this.#getValueFromInputElement(
