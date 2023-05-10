@@ -1,3 +1,4 @@
+import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "./ADDITIONAL_VALIDATION_TYPE.mjs";
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
@@ -21,6 +22,14 @@ const css = await flux_css_api.import(
 
 export class FluxFormElement extends HTMLElement {
     /**
+     * @type {WeakMap<InputElement, string>}
+     */
+    #additional_validation_types;
+    /**
+     * @type {boolean}
+     */
+    #has_custom_validation_messages;
+    /**
      * @type {ShadowRoot}
      */
     #shadow;
@@ -42,6 +51,9 @@ export class FluxFormElement extends HTMLElement {
     constructor(inputs) {
         super();
 
+        this.#additional_validation_types = new WeakMap();
+        this.#has_custom_validation_messages = false;
+
         this.#shadow = this.attachShadow({
             mode: "closed"
         });
@@ -52,6 +64,9 @@ export class FluxFormElement extends HTMLElement {
         );
 
         const form_element = document.createElement("form");
+        form_element.addEventListener("input", () => {
+            this.#removeCustomValidationMessages();
+        });
         form_element.addEventListener("submit", e => {
             e.preventDefault();
         });
@@ -78,37 +93,48 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
+     * @param {string} name
+     * @returns {Input | null}
+     */
+    getInputByName(name) {
+        const input_element = this.#getInputElementByName(
+            name
+        );
+
+        if (input_element === null) {
+            return null;
+        }
+
+        return this.#getInputFromInputElement(
+            input_element
+        );
+    }
+
+    /**
+     * @param {string} name
+     * @returns {InputValue | null}
+     */
+    getValueByName(name) {
+        const input_element = this.#getInputElementByName(
+            name
+        );
+
+        if (input_element === null) {
+            return null;
+        }
+
+        return this.#getInputValueFromInputElement(
+            input_element
+        );
+    }
+
+    /**
      * @returns {Input[]}
      */
     get inputs() {
-        return this.#input_elements.map(input_element => ({
-            disabled: input_element.disabled,
-            "input-mode": input_element.inputMode ?? "",
-            label: input_element.parentElement.querySelector(".label").innerText,
-            max: input_element.max ?? "",
-            "max-length": input_element.maxLength ?? -1,
-            min: input_element.min ?? "",
-            "min-length": input_element.minLength ?? -1,
-            multiple: input_element.multiple ?? false,
-            name: input_element.name,
-            options: Array.from(input_element.querySelectorAll("option")).filter(option_element => input_element.multiple || option_element.value !== "").map(option_element => ({
-                disabled: option_element.disabled,
-                label: option_element.text,
-                title: option_element.title,
-                value: option_element.value
-            })),
-            pattern: input_element.pattern ?? "",
-            placeholder: input_element.placeholder ?? "",
-            "read-only": input_element.readOnly ?? false,
-            required: input_element.required,
-            step: input_element.step ?? "",
-            subtitle: input_element.parentElement.querySelector(".subtitle").innerText,
-            title: input_element.title,
-            type: input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type,
-            value: this.#getValueFromInputElement(
-                input_element
-            )
-        }));
+        return this.#input_elements.map(input_element => this.#getInputFromInputElement(
+            input_element
+        ));
     }
 
     /**
@@ -118,6 +144,7 @@ export class FluxFormElement extends HTMLElement {
     set inputs(inputs) {
         this.#input_elements.forEach(input_element => {
             input_element.parentElement.remove();
+            this.#additional_validation_types.delete(input_element);
         });
 
         for (const input of inputs) {
@@ -133,6 +160,11 @@ export class FluxFormElement extends HTMLElement {
             const input_element = document.createElement(type === INPUT_TYPE_SELECT || type === INPUT_TYPE_TEXTAREA ? type : "input");
 
             input_element.disabled = input.disabled ?? false;
+
+            const additional_validation_type = input["additional-validation-type"] ?? "";
+            if (additional_validation_type !== "") {
+                this.#additional_validation_types.set(input_element, additional_validation_type);
+            }
 
             const input_mode = input["input-mode"] ?? "";
             if (input_mode !== "" && "inputMode" in input_element) {
@@ -233,35 +265,33 @@ export class FluxFormElement extends HTMLElement {
 
             input_element.addEventListener("change", () => {
                 this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                    detail: {
-                        name: input_element.name,
-                        value: this.#getValueFromInputElement(
-                            input_element
-                        )
-                    }
+                    detail: this.#getInputValueFromInputElement(
+                        input_element
+                    )
                 }));
             });
 
             input_element.addEventListener("input", () => {
-                if (input_element instanceof HTMLSelectElement && input_element.multiple) {
+                if (this.#isInputElementMultipleSelect(
+                    input_element
+                )) {
                     this.#updateMultipleSelectClearButton(
                         input_element
                     );
                 }
 
                 this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                    detail: {
-                        name: input_element.name,
-                        value: this.#getValueFromInputElement(
-                            input_element
-                        )
-                    }
+                    detail: this.#getInputValueFromInputElement(
+                        input_element
+                    )
                 }));
             });
 
             container_element.appendChild(input_element);
 
-            if (input_element instanceof HTMLSelectElement && input_element.multiple) {
+            if (this.#isInputElementMultipleSelect(
+                input_element
+            )) {
                 const clear_button = document.createElement("button");
                 clear_button.innerText = "X";
                 clear_button.type = "button";
@@ -288,16 +318,70 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
+     * @returns {Input[]}
+     */
+    get inputs_with_name() {
+        return this.#input_elements_with_name.map(input_element => this.#getInputFromInputElement(
+            input_element
+        ));
+    }
+
+    /**
      * @param {boolean | null} report
      * @returns {boolean}
      */
-    validateInputs(report = null) {
+    validate(report = null) {
+        this.#removeCustomValidationMessages();
+
         if (!this.#form_element.checkValidity()) {
             if (report ?? true) {
                 this.#form_element.reportValidity();
             }
 
             return false;
+        }
+
+        for (const input_element of this.#input_elements) {
+            if (!this.#additional_validation_types.has(input_element)) {
+                continue;
+            }
+
+            const additional_validation_type = this.#additional_validation_types.get(input_element) ?? "";
+
+            if (additional_validation_type === "") {
+                continue;
+            }
+
+            const value = this.#getValueFromInputElement(
+                input_element
+            );
+
+            switch (additional_validation_type) {
+                case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
+                    if (this.#getTypeFromInputElement(
+                        input_element
+                    ) !== INPUT_TYPE_TEXT) {
+                        continue;
+                    }
+
+                    if ((value ?? "") === "") {
+                        continue;
+                    }
+
+                    try {
+                        new RegExp(value);
+                    } catch (error) {
+                        this.#setCustomValidationMessage(
+                            input_element,
+                            "Invalid regular expression!"
+                        );
+                        return false;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         return true;
@@ -307,12 +391,9 @@ export class FluxFormElement extends HTMLElement {
      * @returns {InputValue[]}
      */
     get values() {
-        return this.#input_elements_with_name.map(input_element => ({
-            name: input_element.name,
-            value: this.#getValueFromInputElement(
-                input_element
-            )
-        }));
+        return this.#input_elements_with_name.map(input_element => this.#getInputValueFromInputElement(
+            input_element
+        ));
     }
 
     /**
@@ -342,18 +423,91 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
+     * @param {string} name
+     * @returns {InputElement | null}
+     */
+    #getInputElementByName(name) {
+        return this.#input_elements_with_name.find(input_element => input_element.name === name) ?? null;
+    }
+
+    /**
+     * @param {InputElement} input_element
+     * @returns {Input}
+     */
+    #getInputFromInputElement(input_element) {
+        return {
+            "additional-validation-type": this.#additional_validation_types.get(input_element) ?? "",
+            disabled: input_element.disabled,
+            "input-mode": input_element.inputMode ?? "",
+            label: input_element.parentElement.querySelector(".label").innerText,
+            max: input_element.max ?? "",
+            "max-length": input_element.maxLength ?? -1,
+            min: input_element.min ?? "",
+            "min-length": input_element.minLength ?? -1,
+            multiple: input_element.multiple ?? false,
+            name: input_element.name,
+            options: Array.from(input_element.querySelectorAll("option")).filter(option_element => input_element.multiple || option_element.value !== "").map(option_element => ({
+                disabled: option_element.disabled,
+                label: option_element.text,
+                title: option_element.title,
+                value: option_element.value
+            })),
+            pattern: input_element.pattern ?? "",
+            placeholder: input_element.placeholder ?? "",
+            "read-only": input_element.readOnly ?? false,
+            required: input_element.required,
+            step: input_element.step ?? "",
+            subtitle: input_element.parentElement.querySelector(".subtitle").innerText,
+            title: input_element.title,
+            type: this.#getTypeFromInputElement(
+                input_element
+            ),
+            value: this.#getValueFromInputElement(
+                input_element
+            )
+        };
+    }
+
+    /**
+     * @param {InputElement} input_element
+     * @returns {InputValue}
+     */
+    #getInputValueFromInputElement(input_element) {
+        return {
+            name: input_element.name,
+            value: this.#getValueFromInputElement(
+                input_element
+            )
+        };
+    }
+
+    /**
+     * @param {InputElement} input_element
+     * @returns {string}
+     */
+    #getTypeFromInputElement(input_element) {
+        return input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type;
+    }
+
+    /**
      * @param {InputElement} input_element
      * @returns {Value}
      */
     #getValueFromInputElement(input_element) {
+        const type = this.#getTypeFromInputElement(
+            input_element
+        );
+
         switch (true) {
-            case input_element.type === INPUT_TYPE_CHECKBOX:
+            case type === INPUT_TYPE_CHECKBOX:
                 return input_element.checked;
 
-            case input_element.type === INPUT_TYPE_NUMBER:
+            case type === INPUT_TYPE_NUMBER:
                 return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
 
-            case input_element instanceof HTMLSelectElement && input_element.multiple:
+            case this.#isInputElementMultipleSelect(
+                input_element
+            ):
                 return Array.from(input_element.querySelectorAll("option")).filter(option_element => option_element.selected).map(option_element => option_element.value);
 
             default:
@@ -377,28 +531,71 @@ export class FluxFormElement extends HTMLElement {
 
     /**
      * @param {InputElement} input_element
+     * @returns {boolean}
+     */
+    #isInputElementMultipleSelect(input_element) {
+        return this.#getTypeFromInputElement(
+            input_element
+        ) === INPUT_TYPE_SELECT && input_element.multiple;
+    }
+
+    /**
+     * @returns {void}
+     */
+    #removeCustomValidationMessages() {
+        if (!this.#has_custom_validation_messages) {
+            return;
+        }
+
+        this.#has_custom_validation_messages = false;
+
+        for (const input_element of this.#input_elements_with_name) {
+            input_element.setCustomValidity("");
+        }
+    }
+
+    /**
+     * @param {InputElement} input_element
+     * @param {string} message
+     * @returns {void}
+     */
+    #setCustomValidationMessage(input_element, message) {
+        this.#has_custom_validation_messages = true;
+
+        input_element.setCustomValidity(message);
+        input_element.reportValidity();
+    }
+
+    /**
+     * @param {InputElement} input_element
      * @param {Value} value
      * @returns {void}
      */
     #setValueToInputElement(input_element, value = null) {
+        const type = this.#getTypeFromInputElement(
+            input_element
+        );
+
         switch (true) {
-            case input_element.type === INPUT_TYPE_CHECKBOX:
+            case type === INPUT_TYPE_CHECKBOX:
                 input_element.checked = value ?? false;
                 break;
 
-            case input_element.type === INPUT_TYPE_NUMBER:
+            case type === INPUT_TYPE_NUMBER:
                 input_element.valueAsNumber = value !== null ? value : NaN;
                 break;
 
-            case input_element instanceof HTMLSelectElement && input_element.multiple: {
-                const _value = value ?? [];
-                for (const option_element of input_element.querySelectorAll("option")) {
-                    option_element.selected = _value.includes(option_element.value);
+            case this.#isInputElementMultipleSelect(
+                input_element
+            ): {
+                    const _value = value ?? [];
+                    for (const option_element of input_element.querySelectorAll("option")) {
+                        option_element.selected = _value.includes(option_element.value);
+                    }
+                    this.#updateMultipleSelectClearButton(
+                        input_element
+                    );
                 }
-                this.#updateMultipleSelectClearButton(
-                    input_element
-                );
-            }
                 break;
 
             default:

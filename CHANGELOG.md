@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-10-1
+
+Changes:
+
+- additional validation type
+
 ## v2023-05-04-1
 
 Changes:
