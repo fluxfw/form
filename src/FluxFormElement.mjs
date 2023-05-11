@@ -94,6 +94,28 @@ export class FluxFormElement extends HTMLElement {
     set disabled(values) {
         for (const input_element of this.#input_elements_with_name) {
             input_element.disabled = typeof values === "boolean" ? values : values.includes(input_element.name);
+
+            input_element.parentElement.querySelectorAll("button").forEach(button_element => {
+                button_element.disabled = input_element.disabled;
+            });
+
+            if (this.#isInputElementMultipleSelect(
+                input_element
+            )) {
+                this.#updateMultipleSelectClearButton(
+                    input_element
+                );
+            }
+
+            if (this.#entry_types.has(input_element)) {
+                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(flux_form_element => {
+                    flux_form_element.disabled = input_element.disabled;
+                });
+
+                this.#updateEntries(
+                    input_element
+                );
+            }
         }
     }
 
@@ -279,7 +301,7 @@ export class FluxFormElement extends HTMLElement {
                 add_entry_button_element.innerText = "+";
                 add_entry_button_element.type = "button";
                 add_entry_button_element.addEventListener("click", () => {
-                    this.#addEntryFluxFormElement(
+                    this.#addEntry(
                         input_element
                     );
 
@@ -391,7 +413,7 @@ export class FluxFormElement extends HTMLElement {
             );
 
             if (this.#entry_types.has(input_element)) {
-                if (this.#entry_types.get(input_element)?.["flux-form-elements"]?.some(entry_flux_form_element => !entry_flux_form_element.validate()) ?? false) {
+                if (this.#entry_types.get(input_element)?.["flux-form-elements"]?.some(flux_form_element => !flux_form_element.validate()) ?? false) {
                     return false;
                 }
             }
@@ -463,38 +485,31 @@ export class FluxFormElement extends HTMLElement {
     /**
      * @param {InputElement} input_element
      * @param {InputValue[] | null} values
-     * @param {boolean | null} update_entries_buttons
+     * @param {boolean | null} update_entries
      * @returns {void}
      */
-    #addEntryFluxFormElement(input_element, values = null, update_entries_buttons = null) {
+    #addEntry(input_element, values = null, update_entries = null) {
         const entry_type = this.#entry_types.get(input_element) ?? null;
 
         if (entry_type === null) {
             return;
         }
 
-        const updateEntriesButtons = () => {
-            for (const entry_element of entry_type.element.querySelectorAll("[data-entry]")) {
-                entry_element.querySelector("[data-move_entry_up_button]").disabled = entry_element.previousElementSibling === null;
-
-                entry_element.querySelector("[data-move_entry_down_button]").disabled = entry_element.nextElementSibling === null;
-            }
-        };
-
-        const entry_flux_form_element = this.constructor.new(
+        const flux_form_element = this.constructor.new(
             entry_type.entries
         );
+        flux_form_element.disabled = input_element.disabled;
         if (values !== null) {
-            entry_flux_form_element.values = values;
+            flux_form_element.values = values;
         }
-        entry_flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, () => {
+        flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, () => {
             this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
                 detail: this.#getValueFromInputElement(
                     input_element
                 )
             }));
         });
-        entry_flux_form_element.addEventListener(FLUX_FORM_EVENT_INPUT, () => {
+        flux_form_element.addEventListener(FLUX_FORM_EVENT_INPUT, () => {
             this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
                 detail: this.#getValueFromInputElement(
                     input_element
@@ -512,7 +527,9 @@ export class FluxFormElement extends HTMLElement {
         move_entry_up_button_element.addEventListener("click", () => {
             entry_element.previousElementSibling?.before(entry_element);
 
-            updateEntriesButtons();
+            this.#updateEntries(
+                input_element
+            );
 
             const input_value = this.#getInputValueFromInputElement(
                 input_element
@@ -533,7 +550,9 @@ export class FluxFormElement extends HTMLElement {
         move_entry_down_button_element.addEventListener("click", () => {
             entry_element.nextElementSibling?.after(entry_element);
 
-            updateEntriesButtons();
+            this.#updateEntries(
+                input_element
+            );
 
             const input_value = this.#getInputValueFromInputElement(
                 input_element
@@ -556,16 +575,18 @@ export class FluxFormElement extends HTMLElement {
 
             entry_element.remove();
 
-            entry_type["flux-form-elements"].splice(entry_type["flux-form-elements"].indexOf(entry_flux_form_element), 1);
+            entry_type["flux-form-elements"].splice(entry_type["flux-form-elements"].indexOf(flux_form_element), 1);
 
-            updateEntriesButtons();
+            this.#updateEntries(
+                input_element
+            );
 
             const input_value = this.#getInputValueFromInputElement(
                 input_element
             );
 
             if (input_element.required && input_value.value.length === 0) {
-                this.#addEntryFluxFormElement(
+                this.#addEntry(
                     input_element
                 );
 
@@ -589,14 +610,16 @@ export class FluxFormElement extends HTMLElement {
         });
         entry_element.appendChild(remove_button_element);
 
-        entry_element.appendChild(entry_flux_form_element);
+        entry_element.appendChild(flux_form_element);
 
         entry_type.element.querySelector("[data-entries]").appendChild(entry_element);
 
-        entry_type["flux-form-elements"].push(entry_flux_form_element);
+        entry_type["flux-form-elements"].push(flux_form_element);
 
-        if (update_entries_buttons ?? true) {
-            updateEntriesButtons();
+        if (update_entries ?? true) {
+            this.#updateEntries(
+                input_element
+            );
         }
     }
 
@@ -698,7 +721,7 @@ export class FluxFormElement extends HTMLElement {
                 return input_element.checked;
 
             case type === INPUT_TYPE_ENTRIES:
-                return this.#entry_types.get(input_element)?.["flux-form-elements"]?.map(entry_flux_form_element => entry_flux_form_element.values) ?? [];
+                return this.#entry_types.get(input_element)?.["flux-form-elements"]?.map(flux_form_element => flux_form_element.values) ?? [];
 
             case type === INPUT_TYPE_NUMBER:
                 return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
@@ -780,25 +803,31 @@ export class FluxFormElement extends HTMLElement {
                 break;
 
             case type === INPUT_TYPE_ENTRIES: {
-                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(entry_flux_form_element => {
-                    entry_flux_form_element.parentElement.remove();
+                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(flux_form_element => {
+                    flux_form_element.parentElement.remove();
                 });
 
                 const values = value ?? [];
 
                 for (const _value of values) {
-                    this.#addEntryFluxFormElement(
+                    this.#addEntry(
                         input_element,
                         _value,
-                        values.indexOf(_value) === values.length - 1
+                        false
                     );
                 }
 
                 if (input_element.required && values.length === 0) {
-                    this.#addEntryFluxFormElement(
-                        input_element
+                    this.#addEntry(
+                        input_element,
+                        null,
+                        false
                     );
                 }
+
+                this.#updateEntries(
+                    input_element
+                );
             }
                 break;
 
@@ -828,11 +857,23 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
+     * @param {InputElement} input_element
+     * @returns {void}
+     */
+    #updateEntries(input_element) {
+        this.#entry_types.get(input_element)?.element?.querySelectorAll("[data-entry]")?.forEach(entry_element => {
+            entry_element.querySelector("[data-move_entry_up_button]").disabled = input_element.disabled || entry_element.previousElementSibling === null;
+
+            entry_element.querySelector("[data-move_entry_down_button]").disabled = input_element.disabled || entry_element.nextElementSibling === null;
+        });
+    }
+
+    /**
      * @param {HTMLSelectElement} input_element
      * @returns {void}
      */
     #updateMultipleSelectClearButton(input_element) {
-        input_element.nextElementSibling.disabled = this.#getValueFromInputElement(
+        input_element.nextElementSibling.disabled = input_element.disabled || this.#getValueFromInputElement(
             input_element
         ).length === 0;
     }
