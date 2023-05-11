@@ -115,3 +115,22 @@ button:not(:disabled) {
 :is(.label, .subtitle):empty {
     display: none;
 }
+
+[data-entry] {
+    align-items: start;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+[data-entry] button {
+    flex-grow:   0;
+	flex-shrink: 0;
+    margin-right: 5px;
+}
+
+[data-entry] flux-form {
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 0;
+}

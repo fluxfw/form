@@ -8,6 +8,8 @@ export const INPUT_TYPE_DATETIME_LOCAL = "datetime-local";
 
 export const INPUT_TYPE_EMAIL = "email";
 
+export const INPUT_TYPE_ENTRIES = "entries";
+
 export const INPUT_TYPE_HIDDEN = "hidden";
 
 export const INPUT_TYPE_MONTH = "month";

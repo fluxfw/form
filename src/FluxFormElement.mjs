@@ -1,7 +1,7 @@
 import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "./ADDITIONAL_VALIDATION_TYPE.mjs";
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
+import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputElement.mjs").InputElement} InputElement */
@@ -25,6 +25,10 @@ export class FluxFormElement extends HTMLElement {
      * @type {WeakMap<InputElement, string>}
      */
     #additional_validation_types;
+    /**
+     * @type {WeakMap<InputElement, {entries: Input[], element: HTMLDivElement, "flux-form-elements": FluxFormElement[]}>}
+     */
+    #entry_types;
     /**
      * @type {boolean}
      */
@@ -52,6 +56,7 @@ export class FluxFormElement extends HTMLElement {
         super();
 
         this.#additional_validation_types = new WeakMap();
+        this.#entry_types = new WeakMap();
         this.#has_custom_validation_messages = false;
 
         this.#shadow = this.attachShadow({
@@ -144,6 +149,7 @@ export class FluxFormElement extends HTMLElement {
     set inputs(inputs) {
         this.#input_elements.forEach(input_element => {
             input_element.parentElement.remove();
+            this.#entry_types.delete(input_element);
             this.#additional_validation_types.delete(input_element);
         });
 
@@ -259,48 +265,86 @@ export class FluxFormElement extends HTMLElement {
                 input_element.title = title;
             }
 
-            if (input_element instanceof HTMLInputElement) {
-                input_element.type = type;
-            }
+            if (type === INPUT_TYPE_ENTRIES) {
+                input_element.type = INPUT_TYPE_HIDDEN;
 
-            input_element.addEventListener("change", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                    detail: this.#getInputValueFromInputElement(
-                        input_element
-                    )
-                }));
-            });
+                const element = document.createElement("div");
 
-            input_element.addEventListener("input", () => {
-                if (this.#isInputElementMultipleSelect(
-                    input_element
-                )) {
-                    this.#updateMultipleSelectClearButton(
+                const entries_element = document.createElement("div");
+                entries_element.dataset.entries = true;
+                element.appendChild(entries_element);
+
+                const add_entry_button_element = document.createElement("button");
+                add_entry_button_element.dataset.add_entry_button = true;
+                add_entry_button_element.innerText = "+";
+                add_entry_button_element.type = "button";
+                add_entry_button_element.addEventListener("click", () => {
+                    this.#addEntryFluxFormElement(
                         input_element
                     );
+
+                    const input_value = this.#getInputValueFromInputElement(
+                        input_element
+                    );
+                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                        detail: input_value
+                    }));
+                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                        detail: input_value
+                    }));
+                });
+                element.appendChild(add_entry_button_element);
+
+                container_element.appendChild(element);
+
+                this.#entry_types.set(input_element, {
+                    entries: structuredClone(input.entries ?? []),
+                    element,
+                    "flux-form-elements": []
+                });
+            } else {
+                if (input_element instanceof HTMLInputElement) {
+                    input_element.type = type;
                 }
 
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                    detail: this.#getInputValueFromInputElement(
+                input_element.addEventListener("change", () => {
+                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                        detail: this.#getInputValueFromInputElement(
+                            input_element
+                        )
+                    }));
+                });
+                input_element.addEventListener("input", () => {
+                    if (this.#isInputElementMultipleSelect(
                         input_element
-                    )
-                }));
-            });
+                    )) {
+                        this.#updateMultipleSelectClearButton(
+                            input_element
+                        );
+                    }
+
+                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                        detail: this.#getInputValueFromInputElement(
+                            input_element
+                        )
+                    }));
+                });
+            }
 
             container_element.appendChild(input_element);
 
             if (this.#isInputElementMultipleSelect(
                 input_element
             )) {
-                const clear_button = document.createElement("button");
-                clear_button.innerText = "X";
-                clear_button.type = "button";
-                clear_button.addEventListener("click", () => {
+                const clear_button_element = document.createElement("button");
+                clear_button_element.innerText = "X";
+                clear_button_element.type = "button";
+                clear_button_element.addEventListener("click", () => {
                     this.#setValueToInputElement(
                         input_element
                     );
                 });
-                container_element.appendChild(clear_button);
+                container_element.appendChild(clear_button_element);
             }
 
             this.#setValueToInputElement(
@@ -342,45 +386,46 @@ export class FluxFormElement extends HTMLElement {
         }
 
         for (const input_element of this.#input_elements) {
-            if (!this.#additional_validation_types.has(input_element)) {
-                continue;
-            }
-
-            const additional_validation_type = this.#additional_validation_types.get(input_element) ?? "";
-
-            if (additional_validation_type === "") {
-                continue;
-            }
-
             const value = this.#getValueFromInputElement(
                 input_element
             );
 
-            switch (additional_validation_type) {
-                case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
-                    if (this.#getTypeFromInputElement(
-                        input_element
-                    ) !== INPUT_TYPE_TEXT) {
-                        continue;
-                    }
+            if (this.#entry_types.has(input_element)) {
+                if (this.#entry_types.get(input_element)?.["flux-form-elements"]?.some(entry_flux_form_element => !entry_flux_form_element.validate()) ?? false) {
+                    return false;
+                }
+            }
 
-                    if ((value ?? "") === "") {
-                        continue;
-                    }
+            if (this.#additional_validation_types.has(input_element)) {
+                const additional_validation_type = this.#additional_validation_types.get(input_element) ?? "";
+                if (additional_validation_type !== "") {
+                    switch (additional_validation_type) {
+                        case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
+                            if (this.#getTypeFromInputElement(
+                                input_element
+                            ) !== INPUT_TYPE_TEXT) {
+                                continue;
+                            }
 
-                    try {
-                        new RegExp(value);
-                    } catch (error) {
-                        this.#setCustomValidationMessage(
-                            input_element,
-                            "Invalid regular expression!"
-                        );
-                        return false;
-                    }
-                    break;
+                            if ((value ?? "") === "") {
+                                continue;
+                            }
 
-                default:
-                    break;
+                            try {
+                                new RegExp(value);
+                            } catch (error) {
+                                this.#setCustomValidationMessage(
+                                    input_element,
+                                    "Invalid regular expression!"
+                                );
+                                return false;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
@@ -416,6 +461,146 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
+     * @param {InputElement} input_element
+     * @param {InputValue[] | null} values
+     * @param {boolean | null} update_entries_buttons
+     * @returns {void}
+     */
+    #addEntryFluxFormElement(input_element, values = null, update_entries_buttons = null) {
+        const entry_type = this.#entry_types.get(input_element) ?? null;
+
+        if (entry_type === null) {
+            return;
+        }
+
+        const updateEntriesButtons = () => {
+            for (const entry_element of entry_type.element.querySelectorAll("[data-entry]")) {
+                entry_element.querySelector("[data-move_entry_up_button]").disabled = entry_element.previousElementSibling === null;
+
+                entry_element.querySelector("[data-move_entry_down_button]").disabled = entry_element.nextElementSibling === null;
+            }
+        };
+
+        const entry_flux_form_element = this.constructor.new(
+            entry_type.entries
+        );
+        if (values !== null) {
+            entry_flux_form_element.values = values;
+        }
+        entry_flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, () => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                detail: this.#getValueFromInputElement(
+                    input_element
+                )
+            }));
+        });
+        entry_flux_form_element.addEventListener(FLUX_FORM_EVENT_INPUT, () => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                detail: this.#getValueFromInputElement(
+                    input_element
+                )
+            }));
+        });
+
+        const entry_element = document.createElement("div");
+        entry_element.dataset.entry = true;
+
+        const move_entry_up_button_element = document.createElement("button");
+        move_entry_up_button_element.dataset.move_entry_up_button = true;
+        move_entry_up_button_element.innerText = "/\\";
+        move_entry_up_button_element.type = "button";
+        move_entry_up_button_element.addEventListener("click", () => {
+            entry_element.previousElementSibling?.before(entry_element);
+
+            updateEntriesButtons();
+
+            const input_value = this.#getInputValueFromInputElement(
+                input_element
+            );
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                detail: input_value
+            }));
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                detail: input_value
+            }));
+        });
+        entry_element.appendChild(move_entry_up_button_element);
+
+        const move_entry_down_button_element = document.createElement("button");
+        move_entry_down_button_element.dataset.move_entry_down_button = true;
+        move_entry_down_button_element.innerText = "\\/";
+        move_entry_down_button_element.type = "button";
+        move_entry_down_button_element.addEventListener("click", () => {
+            entry_element.nextElementSibling?.after(entry_element);
+
+            updateEntriesButtons();
+
+            const input_value = this.#getInputValueFromInputElement(
+                input_element
+            );
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                detail: input_value
+            }));
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                detail: input_value
+            }));
+        });
+        entry_element.appendChild(move_entry_down_button_element);
+
+        const remove_button_element = document.createElement("button");
+        remove_button_element.dataset.remove_entry_button = true;
+        remove_button_element.innerText = "X";
+        remove_button_element.type = "button";
+        remove_button_element.addEventListener("click", e => {
+            e.preventDefault();
+
+            entry_element.remove();
+
+            entry_type["flux-form-elements"].splice(entry_type["flux-form-elements"].indexOf(entry_flux_form_element), 1);
+
+            updateEntriesButtons();
+
+            const input_value = this.#getInputValueFromInputElement(
+                input_element
+            );
+
+            if (input_element.required && input_value.value.length === 0) {
+                this.#addEntryFluxFormElement(
+                    input_element
+                );
+
+                const _input_value = this.#getInputValueFromInputElement(
+                    input_element
+                );
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                    detail: _input_value
+                }));
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                    detail: _input_value
+                }));
+            } else {
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                    detail: input_value
+                }));
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                    detail: input_value
+                }));
+            }
+        });
+        entry_element.appendChild(remove_button_element);
+
+        entry_element.appendChild(entry_flux_form_element);
+
+        entry_type.element.querySelector("[data-entries]").appendChild(entry_element);
+
+        entry_type["flux-form-elements"].push(entry_flux_form_element);
+
+        if (update_entries_buttons ?? true) {
+            updateEntriesButtons();
+        }
+    }
+
+    /**
      * @returns {HTMLFormElement}
      */
     get #form_element() {
@@ -438,6 +623,7 @@ export class FluxFormElement extends HTMLElement {
         return {
             "additional-validation-type": this.#additional_validation_types.get(input_element) ?? "",
             disabled: input_element.disabled,
+            entries: structuredClone(this.#entry_types.get(input_element)?.entries ?? []),
             "input-mode": input_element.inputMode ?? "",
             label: input_element.parentElement.querySelector(".label").innerText,
             max: input_element.max ?? "",
@@ -486,7 +672,16 @@ export class FluxFormElement extends HTMLElement {
      * @returns {string}
      */
     #getTypeFromInputElement(input_element) {
-        return input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type;
+        switch (true) {
+            case this.#entry_types.has(input_element):
+                return INPUT_TYPE_ENTRIES;
+
+            case input_element instanceof HTMLSelectElement:
+                return INPUT_TYPE_SELECT;
+
+            default:
+                return input_element.type;
+        }
     }
 
     /**
@@ -501,6 +696,9 @@ export class FluxFormElement extends HTMLElement {
         switch (true) {
             case type === INPUT_TYPE_CHECKBOX:
                 return input_element.checked;
+
+            case type === INPUT_TYPE_ENTRIES:
+                return this.#entry_types.get(input_element)?.["flux-form-elements"]?.map(entry_flux_form_element => entry_flux_form_element.values) ?? [];
 
             case type === INPUT_TYPE_NUMBER:
                 return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
@@ -581,6 +779,29 @@ export class FluxFormElement extends HTMLElement {
                 input_element.checked = value ?? false;
                 break;
 
+            case type === INPUT_TYPE_ENTRIES: {
+                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(entry_flux_form_element => {
+                    entry_flux_form_element.parentElement.remove();
+                });
+
+                const values = value ?? [];
+
+                for (const _value of values) {
+                    this.#addEntryFluxFormElement(
+                        input_element,
+                        _value,
+                        values.indexOf(_value) === values.length - 1
+                    );
+                }
+
+                if (input_element.required && values.length === 0) {
+                    this.#addEntryFluxFormElement(
+                        input_element
+                    );
+                }
+            }
+                break;
+
             case type === INPUT_TYPE_NUMBER:
                 input_element.valueAsNumber = value !== null ? value : NaN;
                 break;
@@ -589,9 +810,11 @@ export class FluxFormElement extends HTMLElement {
                 input_element
             ): {
                     const _value = value ?? [];
+
                     for (const option_element of input_element.querySelectorAll("option")) {
                         option_element.selected = _value.includes(option_element.value);
                     }
+
                     this.#updateMultipleSelectClearButton(
                         input_element
                     );
