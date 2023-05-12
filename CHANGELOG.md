@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-12-1
+
+Changes:
+
+- Min/Max length for entries
+
 ## v2023-05-11-2
 
 Changes:

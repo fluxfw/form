@@ -20,15 +20,17 @@ const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
 );
 
+export const FLUX_FORM_ELEMENT_TAG_NAME = "flux-form";
+
 export class FluxFormElement extends HTMLElement {
     /**
      * @type {WeakMap<InputElement, string>}
      */
     #additional_validation_types;
     /**
-     * @type {WeakMap<InputElement, {entries: Input[], element: HTMLDivElement, "flux-form-elements": FluxFormElement[]}>}
+     * @type {WeakMap<InputElement, Input[]>}
      */
-    #entry_types;
+    #entries_types;
     /**
      * @type {boolean}
      */
@@ -56,7 +58,7 @@ export class FluxFormElement extends HTMLElement {
         super();
 
         this.#additional_validation_types = new WeakMap();
-        this.#entry_types = new WeakMap();
+        this.#entries_types = new WeakMap();
         this.#has_custom_validation_messages = false;
 
         this.#shadow = this.attachShadow({
@@ -93,29 +95,21 @@ export class FluxFormElement extends HTMLElement {
      */
     set disabled(values) {
         for (const input_element of this.#input_elements_with_name) {
-            input_element.disabled = typeof values === "boolean" ? values : values.includes(input_element.name);
+            const disabled = typeof values === "boolean" ? values : values.includes(input_element.name);
 
-            input_element.parentElement.querySelectorAll("button").forEach(button_element => {
-                button_element.disabled = input_element.disabled;
+            input_element.disabled = disabled;
+
+            input_element.parentElement.querySelectorAll(`button, ${FLUX_FORM_ELEMENT_TAG_NAME}`).forEach(element => {
+                element.disabled = disabled;
             });
 
-            if (this.#isInputElementMultipleSelect(
+            this.#updateClearButton(
                 input_element
-            )) {
-                this.#updateMultipleSelectClearButton(
-                    input_element
-                );
-            }
+            );
 
-            if (this.#entry_types.has(input_element)) {
-                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(flux_form_element => {
-                    flux_form_element.disabled = input_element.disabled;
-                });
-
-                this.#updateEntries(
-                    input_element
-                );
-            }
+            this.#updateEntries(
+                input_element
+            );
         }
     }
 
@@ -171,8 +165,9 @@ export class FluxFormElement extends HTMLElement {
     set inputs(inputs) {
         this.#input_elements.forEach(input_element => {
             input_element.parentElement.remove();
-            this.#entry_types.delete(input_element);
+
             this.#additional_validation_types.delete(input_element);
+            this.#entries_types.delete(input_element);
         });
 
         for (const input of inputs) {
@@ -290,40 +285,35 @@ export class FluxFormElement extends HTMLElement {
             if (type === INPUT_TYPE_ENTRIES) {
                 input_element.type = INPUT_TYPE_HIDDEN;
 
-                const element = document.createElement("div");
-
                 const entries_element = document.createElement("div");
                 entries_element.dataset.entries = true;
-                element.appendChild(entries_element);
+                container_element.appendChild(entries_element);
 
-                const add_entry_button_element = document.createElement("button");
-                add_entry_button_element.dataset.add_entry_button = true;
-                add_entry_button_element.innerText = "+";
-                add_entry_button_element.type = "button";
-                add_entry_button_element.addEventListener("click", () => {
-                    this.#addEntry(
-                        input_element
-                    );
+                const _min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
+                if (_min_length === -1 || input_element.maxLength === -1 || _min_length !== input_element.maxLength) {
+                    const add_entry_button_element = document.createElement("button");
+                    add_entry_button_element.dataset.add_entry_button = true;
+                    add_entry_button_element.innerText = "+";
+                    add_entry_button_element.type = "button";
+                    add_entry_button_element.addEventListener("click", () => {
+                        this.#addEntry(
+                            input_element
+                        );
 
-                    const input_value = this.#getInputValueFromInputElement(
-                        input_element
-                    );
-                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                        detail: input_value
-                    }));
-                    this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                        detail: input_value
-                    }));
-                });
-                element.appendChild(add_entry_button_element);
+                        const input_value = this.#getInputValueFromInputElement(
+                            input_element
+                        );
+                        this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                            detail: input_value
+                        }));
+                        this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                            detail: input_value
+                        }));
+                    });
+                    container_element.appendChild(add_entry_button_element);
+                }
 
-                container_element.appendChild(element);
-
-                this.#entry_types.set(input_element, {
-                    entries: structuredClone(input.entries ?? []),
-                    element,
-                    "flux-form-elements": []
-                });
+                this.#entries_types.set(input_element, structuredClone(input.entries) ?? []);
             } else {
                 if (input_element instanceof HTMLInputElement) {
                     input_element.type = type;
@@ -337,13 +327,9 @@ export class FluxFormElement extends HTMLElement {
                     }));
                 });
                 input_element.addEventListener("input", () => {
-                    if (this.#isInputElementMultipleSelect(
+                    this.#updateClearButton(
                         input_element
-                    )) {
-                        this.#updateMultipleSelectClearButton(
-                            input_element
-                        );
-                    }
+                    );
 
                     this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
                         detail: this.#getInputValueFromInputElement(
@@ -355,10 +341,9 @@ export class FluxFormElement extends HTMLElement {
 
             container_element.appendChild(input_element);
 
-            if (this.#isInputElementMultipleSelect(
-                input_element
-            )) {
+            if (type === INPUT_TYPE_SELECT && input_element.multiple) {
                 const clear_button_element = document.createElement("button");
+                clear_button_element.dataset.clear_button = true;
                 clear_button_element.innerText = "X";
                 clear_button_element.type = "button";
                 clear_button_element.addEventListener("click", () => {
@@ -408,12 +393,20 @@ export class FluxFormElement extends HTMLElement {
         }
 
         for (const input_element of this.#input_elements) {
+            const type = this.#getTypeFromInputElement(
+                input_element
+            );
             const value = this.#getValueFromInputElement(
                 input_element
             );
 
-            if (this.#entry_types.has(input_element)) {
-                if (this.#entry_types.get(input_element)?.["flux-form-elements"]?.some(flux_form_element => !flux_form_element.validate()) ?? false) {
+            if (type === INPUT_TYPE_ENTRIES) {
+                if (Array.from(input_element.parentElement.querySelectorAll(FLUX_FORM_ELEMENT_TAG_NAME)).some(flux_form_element => !flux_form_element.validate())) {
+                    return false;
+                }
+
+                const entry_elements_length = input_element.parentElement.querySelectorAll("[data-entry]").length;
+                if ((input_element.required && entry_elements_length === 0) || (input_element.minLength !== -1 && entry_elements_length < input_element.minLength) || (input_element.maxLength !== -1 && entry_elements_length > input_element.maxLength)) {
                     return false;
                 }
             }
@@ -423,9 +416,7 @@ export class FluxFormElement extends HTMLElement {
                 if (additional_validation_type !== "") {
                     switch (additional_validation_type) {
                         case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
-                            if (this.#getTypeFromInputElement(
-                                input_element
-                            ) !== INPUT_TYPE_TEXT) {
+                            if (type !== INPUT_TYPE_TEXT) {
                                 continue;
                             }
 
@@ -489,19 +480,93 @@ export class FluxFormElement extends HTMLElement {
      * @returns {void}
      */
     #addEntry(input_element, values = null, update_entries = null) {
-        const entry_type = this.#entry_types.get(input_element) ?? null;
-
-        if (entry_type === null) {
+        if (input_element.maxLength !== -1 && input_element.parentElement.querySelectorAll("[data-entry]").length >= input_element.maxLength) {
             return;
         }
 
-        const flux_form_element = this.constructor.new(
-            entry_type.entries
-        );
-        flux_form_element.disabled = input_element.disabled;
-        if (values !== null) {
-            flux_form_element.values = values;
+        const entry_element = document.createElement("div");
+        entry_element.dataset.entry = true;
+
+        const min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
+
+        if (min_length !== 1 || input_element.maxLength !== 1) {
+            const move_entry_up_button_element = document.createElement("button");
+            move_entry_up_button_element.dataset.move_entry_up_button = true;
+            move_entry_up_button_element.innerText = "/\\";
+            move_entry_up_button_element.type = "button";
+            move_entry_up_button_element.addEventListener("click", () => {
+                entry_element.previousElementSibling?.before(entry_element);
+
+                this.#updateEntries(
+                    input_element
+                );
+
+                const input_value = this.#getInputValueFromInputElement(
+                    input_element
+                );
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                    detail: input_value
+                }));
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                    detail: input_value
+                }));
+            });
+            entry_element.appendChild(move_entry_up_button_element);
+
+            const move_entry_down_button_element = document.createElement("button");
+            move_entry_down_button_element.dataset.move_entry_down_button = true;
+            move_entry_down_button_element.innerText = "\\/";
+            move_entry_down_button_element.type = "button";
+            move_entry_down_button_element.addEventListener("click", () => {
+                entry_element.nextElementSibling?.after(entry_element);
+
+                this.#updateEntries(
+                    input_element
+                );
+
+                const input_value = this.#getInputValueFromInputElement(
+                    input_element
+                );
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                    detail: input_value
+                }));
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                    detail: input_value
+                }));
+            });
+            entry_element.appendChild(move_entry_down_button_element);
         }
+
+        if (min_length === -1 || input_element.maxLength === -1 || min_length !== input_element.maxLength) {
+            const remove_button_element = document.createElement("button");
+            remove_button_element.dataset.remove_entry_button = true;
+            remove_button_element.innerText = "X";
+            remove_button_element.type = "button";
+            remove_button_element.addEventListener("click", e => {
+                e.preventDefault();
+
+                entry_element.remove();
+
+                this.#updateEntries(
+                    input_element
+                );
+
+                const input_value = this.#getInputValueFromInputElement(
+                    input_element
+                );
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                    detail: input_value
+                }));
+                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                    detail: input_value
+                }));
+            });
+            entry_element.appendChild(remove_button_element);
+        }
+
+        const flux_form_element = this.constructor.new(
+            this.#entries_types.get(input_element) ?? []
+        );
         flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, () => {
             this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
                 detail: this.#getValueFromInputElement(
@@ -516,105 +581,14 @@ export class FluxFormElement extends HTMLElement {
                 )
             }));
         });
-
-        const entry_element = document.createElement("div");
-        entry_element.dataset.entry = true;
-
-        const move_entry_up_button_element = document.createElement("button");
-        move_entry_up_button_element.dataset.move_entry_up_button = true;
-        move_entry_up_button_element.innerText = "/\\";
-        move_entry_up_button_element.type = "button";
-        move_entry_up_button_element.addEventListener("click", () => {
-            entry_element.previousElementSibling?.before(entry_element);
-
-            this.#updateEntries(
-                input_element
-            );
-
-            const input_value = this.#getInputValueFromInputElement(
-                input_element
-            );
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                detail: input_value
-            }));
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                detail: input_value
-            }));
-        });
-        entry_element.appendChild(move_entry_up_button_element);
-
-        const move_entry_down_button_element = document.createElement("button");
-        move_entry_down_button_element.dataset.move_entry_down_button = true;
-        move_entry_down_button_element.innerText = "\\/";
-        move_entry_down_button_element.type = "button";
-        move_entry_down_button_element.addEventListener("click", () => {
-            entry_element.nextElementSibling?.after(entry_element);
-
-            this.#updateEntries(
-                input_element
-            );
-
-            const input_value = this.#getInputValueFromInputElement(
-                input_element
-            );
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                detail: input_value
-            }));
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                detail: input_value
-            }));
-        });
-        entry_element.appendChild(move_entry_down_button_element);
-
-        const remove_button_element = document.createElement("button");
-        remove_button_element.dataset.remove_entry_button = true;
-        remove_button_element.innerText = "X";
-        remove_button_element.type = "button";
-        remove_button_element.addEventListener("click", e => {
-            e.preventDefault();
-
-            entry_element.remove();
-
-            entry_type["flux-form-elements"].splice(entry_type["flux-form-elements"].indexOf(flux_form_element), 1);
-
-            this.#updateEntries(
-                input_element
-            );
-
-            const input_value = this.#getInputValueFromInputElement(
-                input_element
-            );
-
-            if (input_element.required && input_value.value.length === 0) {
-                this.#addEntry(
-                    input_element
-                );
-
-                const _input_value = this.#getInputValueFromInputElement(
-                    input_element
-                );
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                    detail: _input_value
-                }));
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                    detail: _input_value
-                }));
-            } else {
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                    detail: input_value
-                }));
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                    detail: input_value
-                }));
-            }
-        });
-        entry_element.appendChild(remove_button_element);
-
         entry_element.appendChild(flux_form_element);
 
-        entry_type.element.querySelector("[data-entries]").appendChild(entry_element);
+        input_element.parentElement.querySelector("[data-entries]").appendChild(entry_element);
 
-        entry_type["flux-form-elements"].push(flux_form_element);
+        flux_form_element.disabled = input_element.disabled;
+        if (values !== null) {
+            flux_form_element.values = values;
+        }
 
         if (update_entries ?? true) {
             this.#updateEntries(
@@ -646,7 +620,7 @@ export class FluxFormElement extends HTMLElement {
         return {
             "additional-validation-type": this.#additional_validation_types.get(input_element) ?? "",
             disabled: input_element.disabled,
-            entries: structuredClone(this.#entry_types.get(input_element)?.entries ?? []),
+            entries: structuredClone(this.#entries_types.get(input_element)) ?? [],
             "input-mode": input_element.inputMode ?? "",
             label: input_element.parentElement.querySelector(".label").innerText,
             max: input_element.max ?? "",
@@ -696,7 +670,7 @@ export class FluxFormElement extends HTMLElement {
      */
     #getTypeFromInputElement(input_element) {
         switch (true) {
-            case this.#entry_types.has(input_element):
+            case this.#entries_types.has(input_element):
                 return INPUT_TYPE_ENTRIES;
 
             case input_element instanceof HTMLSelectElement:
@@ -721,14 +695,12 @@ export class FluxFormElement extends HTMLElement {
                 return input_element.checked;
 
             case type === INPUT_TYPE_ENTRIES:
-                return this.#entry_types.get(input_element)?.["flux-form-elements"]?.map(flux_form_element => flux_form_element.values) ?? [];
+                return Array.from(input_element.parentElement.querySelectorAll(FLUX_FORM_ELEMENT_TAG_NAME)).map(flux_form_element => flux_form_element.values);
 
             case type === INPUT_TYPE_NUMBER:
                 return !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null;
 
-            case this.#isInputElementMultipleSelect(
-                input_element
-            ):
+            case type === INPUT_TYPE_SELECT && input_element.multiple:
                 return Array.from(input_element.querySelectorAll("option")).filter(option_element => option_element.selected).map(option_element => option_element.value);
 
             default:
@@ -748,16 +720,6 @@ export class FluxFormElement extends HTMLElement {
      */
     get #input_elements_with_name() {
         return this.#input_elements.filter(input_element => input_element.name !== "");
-    }
-
-    /**
-     * @param {InputElement} input_element
-     * @returns {boolean}
-     */
-    #isInputElementMultipleSelect(input_element) {
-        return this.#getTypeFromInputElement(
-            input_element
-        ) === INPUT_TYPE_SELECT && input_element.multiple;
     }
 
     /**
@@ -802,14 +764,12 @@ export class FluxFormElement extends HTMLElement {
                 input_element.checked = value ?? false;
                 break;
 
-            case type === INPUT_TYPE_ENTRIES: {
-                this.#entry_types.get(input_element)?.["flux-form-elements"]?.forEach(flux_form_element => {
-                    flux_form_element.parentElement.remove();
+            case type === INPUT_TYPE_ENTRIES:
+                Array.from(input_element.parentElement.querySelectorAll("[data-entry]")).forEach(entry_element => {
+                    entry_element.remove();
                 });
 
-                const values = value ?? [];
-
-                for (const _value of values) {
+                for (const _value of value ?? []) {
                     this.#addEntry(
                         input_element,
                         _value,
@@ -817,37 +777,26 @@ export class FluxFormElement extends HTMLElement {
                     );
                 }
 
-                if (input_element.required && values.length === 0) {
-                    this.#addEntry(
-                        input_element,
-                        null,
-                        false
-                    );
-                }
-
                 this.#updateEntries(
                     input_element
                 );
-            }
                 break;
 
             case type === INPUT_TYPE_NUMBER:
                 input_element.valueAsNumber = value !== null ? value : NaN;
                 break;
 
-            case this.#isInputElementMultipleSelect(
-                input_element
-            ): {
-                    const _value = value ?? [];
+            case type === INPUT_TYPE_SELECT && input_element.multiple: {
+                const values = value ?? [];
 
-                    for (const option_element of input_element.querySelectorAll("option")) {
-                        option_element.selected = _value.includes(option_element.value);
-                    }
-
-                    this.#updateMultipleSelectClearButton(
-                        input_element
-                    );
+                for (const option_element of input_element.querySelectorAll("option")) {
+                    option_element.selected = values.includes(option_element.value);
                 }
+
+                this.#updateClearButton(
+                    input_element
+                );
+            }
                 break;
 
             default:
@@ -860,25 +809,66 @@ export class FluxFormElement extends HTMLElement {
      * @param {InputElement} input_element
      * @returns {void}
      */
-    #updateEntries(input_element) {
-        this.#entry_types.get(input_element)?.element?.querySelectorAll("[data-entry]")?.forEach(entry_element => {
-            entry_element.querySelector("[data-move_entry_up_button]").disabled = input_element.disabled || entry_element.previousElementSibling === null;
+    #updateClearButton(input_element) {
+        const clear_button_element = input_element.parentElement.querySelector("data-clear_button");
 
-            entry_element.querySelector("[data-move_entry_down_button]").disabled = input_element.disabled || entry_element.nextElementSibling === null;
-        });
+        if (clear_button_element === null) {
+            return;
+        }
+
+        const value = this.#getValueFromInputElement(
+            input_element
+        );
+
+        clear_button_element.disabled = input_element.disabled || value === null || value === "" || value === false || value.length === 0;
     }
 
     /**
-     * @param {HTMLSelectElement} input_element
+     * @param {InputElement} input_element
      * @returns {void}
      */
-    #updateMultipleSelectClearButton(input_element) {
-        input_element.nextElementSibling.disabled = input_element.disabled || this.#getValueFromInputElement(
-            input_element
-        ).length === 0;
+    #updateEntries(input_element) {
+        if (input_element.parentElement.querySelector("[data-entries]") === null) {
+            return;
+        }
+
+        const min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
+
+        const entry_elements_length = input_element.parentElement.querySelectorAll("[data-entry]").length;
+        if (min_length !== -1 && entry_elements_length < min_length) {
+            for (let i = entry_elements_length; i < min_length; i++) {
+                this.#addEntry(
+                    input_element,
+                    null,
+                    false
+                );
+            }
+        }
+
+        const entry_elements = input_element.parentElement.querySelectorAll("[data-entry]");
+
+        const add_entry_button_element = input_element.parentElement.querySelector("[data-add_entry_button]");
+        if (add_entry_button_element !== null) {
+            add_entry_button_element.disabled = input_element.disabled || (input_element.maxLength !== -1 && entry_elements.length >= input_element.maxLength);
+        }
+
+        entry_elements.forEach(entry_element => {
+            const move_entry_up_button_element = entry_element.querySelector("[data-move_entry_up_button]");
+            if (move_entry_up_button_element !== null) {
+                move_entry_up_button_element.disabled = input_element.disabled || entry_element.previousElementSibling === null;
+            }
+
+            const move_entry_down_button_element = entry_element.querySelector("[data-move_entry_down_button]");
+            if (move_entry_down_button_element !== null) {
+                move_entry_down_button_element.disabled = input_element.disabled || entry_element.nextElementSibling === null;
+            }
+
+            const remove_entry_button_element = entry_element.querySelector("[data-remove_entry_button]");
+            if (remove_entry_button_element !== null) {
+                remove_entry_button_element.disabled = input_element.disabled || (min_length !== -1 && entry_elements.length <= min_length);
+            }
+        });
     }
 }
-
-export const FLUX_FORM_ELEMENT_TAG_NAME = "flux-form";
 
 customElements.define(FLUX_FORM_ELEMENT_TAG_NAME, FluxFormElement);
