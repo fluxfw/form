@@ -810,7 +810,7 @@ export class FluxFormElement extends HTMLElement {
      * @returns {void}
      */
     #updateClearButton(input_element) {
-        const clear_button_element = input_element.parentElement.querySelector("data-clear_button");
+        const clear_button_element = input_element.parentElement.querySelector("[data-clear_button]");
 
         if (clear_button_element === null) {
             return;
