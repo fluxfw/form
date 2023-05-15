@@ -285,11 +285,12 @@ export class FluxFormElement extends HTMLElement {
             if (type === INPUT_TYPE_ENTRIES) {
                 input_element.type = INPUT_TYPE_HIDDEN;
 
+                const _min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
+
                 const entries_element = document.createElement("div");
                 entries_element.dataset.entries = true;
                 container_element.appendChild(entries_element);
 
-                const _min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
                 if (_min_length === -1 || input_element.maxLength === -1 || _min_length !== input_element.maxLength) {
                     const add_entry_button_element = document.createElement("button");
                     add_entry_button_element.dataset.add_entry_button = true;
@@ -484,12 +485,12 @@ export class FluxFormElement extends HTMLElement {
             return;
         }
 
+        const min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
+
         const entry_element = document.createElement("div");
         entry_element.dataset.entry = true;
 
-        const min_length = Math.max(input_element.minLength, input_element.required ? 1 : -1);
-
-        if (min_length !== 1 || input_element.maxLength !== 1) {
+        if (input_element.maxLength === -1 || input_element.maxLength > 1) {
             const move_entry_up_button_element = document.createElement("button");
             move_entry_up_button_element.dataset.move_entry_up_button = true;
             move_entry_up_button_element.innerText = "/\\";
