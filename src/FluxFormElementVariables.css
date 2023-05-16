@@ -1,4 +1,5 @@
 :root {
+    --flux-form-background-color: var(--flux-color-scheme-background, #ffffff);
     --flux-form-input-background-color: var(--flux-color-scheme-background, #ffffff);
     --flux-form-input-border-color: var(--flux-color-scheme-foreground, #000000);
     --flux-form-input-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
