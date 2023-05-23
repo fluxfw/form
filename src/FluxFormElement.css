@@ -14,7 +14,7 @@ form {
     width: 100%;
 }
 
-label {
+.container {
     display: block;
     flex-grow: 0;
     flex-shrink: 0;
@@ -37,7 +37,6 @@ input, select, textarea {
     box-sizing: content-box;
     color: var(--flux-form-input-foreground-color);
     cursor: default;
-    display: block;
     font-family: inherit;
     font-size: 16px;
     height: 25px;
@@ -46,7 +45,11 @@ input, select, textarea {
     width: calc(100% - 12px);
 }
 
-label:not(:first-child) .label:empty + :is(input, select, textarea) {
+:is(input, select, textarea):not([hidden]) {
+    display: block;
+}
+
+.container:not(:first-child) .label:empty + :is(input, select, textarea) {
     border-top: none;
 }
 
@@ -114,25 +117,25 @@ button:not(:disabled) {
     width: 100%;
 }
 
-:is(.label, .subtitle):empty {
-    display: none;
-}
-
-[data-entry] {
+.inline_container {
     align-items: start;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 5px
 }
 
-[data-entry] button {
-    flex-grow:   0;
+.inline_container button {
+    flex-grow: 0;
 	flex-shrink: 0;
-    margin-right: 5px;
 }
 
-[data-entry] flux-form {
+.inline_container :is(flux-form, input:not([type="checkbox"]), select, textarea) {
     flex-grow: 1;
     flex-shrink: 1;
     width: 0;
+}
+
+:is(.label, .subtitle):empty {
+    display: none;
 }

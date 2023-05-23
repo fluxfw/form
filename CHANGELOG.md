@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-23-1
+
+Changes:
+
+- Set color checkbox
+
 ## v2023-05-16-2
 
 Changes:
