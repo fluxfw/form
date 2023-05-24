@@ -190,6 +190,7 @@ export class FluxFormElement extends HTMLElement {
             const type = input.type ?? INPUT_TYPE_TEXT;
 
             const input_element = document.createElement(type === INPUT_TYPE_SELECT || type === INPUT_TYPE_TEXTAREA ? type : "input");
+            input_element.classList.add("input");
 
             input_element.disabled = input.disabled ?? false;
 
@@ -783,7 +784,7 @@ export class FluxFormElement extends HTMLElement {
      * @returns {InputElement[]}
      */
     get #input_elements() {
-        return Array.from(this.#form_element.elements);
+        return Array.from(this.#form_element.querySelectorAll(".input"));
     }
 
     /**
