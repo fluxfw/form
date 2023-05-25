@@ -7,6 +7,7 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_H
 /** @typedef {import("./InputElement.mjs").InputElement} InputElement */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./Value.mjs").Value} Value */
+/** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
 flux_css_api.adopt(
     document,
@@ -24,9 +25,13 @@ export const FLUX_FORM_ELEMENT_TAG_NAME = "flux-form";
 
 export class FluxFormElement extends HTMLElement {
     /**
-     * @type {WeakMap<InputElement, string>}
+     * @type {Map<string, validateValue>}
      */
     #additional_validation_types;
+    /**
+     * @type {WeakMap<InputElement, string>}
+     */
+    #additional_validation_types_element;
     /**
      * @type {WeakMap<InputElement, Input[]>}
      */
@@ -57,7 +62,8 @@ export class FluxFormElement extends HTMLElement {
     constructor(inputs) {
         super();
 
-        this.#additional_validation_types = new WeakMap();
+        this.#additional_validation_types = new Map();
+        this.#additional_validation_types_element = new WeakMap();
         this.#entries_types = new WeakMap();
         this.#has_custom_validation_messages = false;
 
@@ -80,6 +86,15 @@ export class FluxFormElement extends HTMLElement {
         this.#shadow.appendChild(form_element);
 
         this.inputs = inputs;
+    }
+
+    /**
+     * @param {string} type
+     * @param {validateValue} validate_value
+     * @returns {void}
+     */
+    addAdditionalValidationType(type, validate_value) {
+        this.#additional_validation_types.set(type, validate_value);
     }
 
     /**
@@ -174,7 +189,7 @@ export class FluxFormElement extends HTMLElement {
                 input_element
             ).remove();
 
-            this.#additional_validation_types.delete(input_element);
+            this.#additional_validation_types_element.delete(input_element);
             this.#entries_types.delete(input_element);
         });
 
@@ -196,7 +211,7 @@ export class FluxFormElement extends HTMLElement {
 
             const additional_validation_type = input["additional-validation-type"] ?? "";
             if (additional_validation_type !== "") {
-                this.#additional_validation_types.set(input_element, additional_validation_type);
+                this.#additional_validation_types_element.set(input_element, additional_validation_type);
             }
 
             const input_mode = input["input-mode"] ?? "";
@@ -431,14 +446,13 @@ export class FluxFormElement extends HTMLElement {
         }
 
         for (const input_element of this.#input_elements) {
-            const type = this.#getTypeFromInputElement(
-                input_element
-            );
             const value = this.#getValueFromInputElement(
                 input_element
             );
 
-            if (type === INPUT_TYPE_ENTRIES) {
+            if (this.#getTypeFromInputElement(
+                input_element
+            ) === INPUT_TYPE_ENTRIES) {
                 const container_element = this.#getContainerElement(
                     input_element
                 );
@@ -453,20 +467,20 @@ export class FluxFormElement extends HTMLElement {
                 }
             }
 
-            if (this.#additional_validation_types.has(input_element)) {
-                const additional_validation_type = this.#additional_validation_types.get(input_element) ?? "";
+            if (this.#additional_validation_types_element.has(input_element)) {
+                const additional_validation_type = this.#additional_validation_types_element.get(input_element) ?? "";
                 if (additional_validation_type !== "") {
                     switch (additional_validation_type) {
                         case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
-                            if (type !== INPUT_TYPE_TEXT) {
-                                continue;
-                            }
-
                             if ((value ?? "") === "") {
                                 continue;
                             }
 
                             try {
+                                if (typeof value !== "string") {
+                                    throw new Error();
+                                }
+
                                 new RegExp(value);
                             } catch (error) {
                                 this.#setCustomValidationMessage(
@@ -477,8 +491,27 @@ export class FluxFormElement extends HTMLElement {
                             }
                             break;
 
-                        default:
-                            break;
+                        default: {
+                            let validate_value;
+
+                            if (!this.#additional_validation_types.has(additional_validation_type) || (validate_value = this.#additional_validation_types.get(additional_validation_type) ?? null) === null) {
+                                throw new Error(`Unknown additional validation type ${additional_validation_type}`);
+                            }
+
+                            const validate_value_result = validate_value(
+                                value
+                            );
+
+                            if (validate_value_result !== true) {
+                                if (validate_value_result !== false) {
+                                    this.#setCustomValidationMessage(
+                                        input_element,
+                                        validate_value_result
+                                    );
+                                }
+                                return false;
+                            }
+                        }
                     }
                 }
             }
@@ -683,7 +716,7 @@ export class FluxFormElement extends HTMLElement {
         );
 
         return {
-            "additional-validation-type": this.#additional_validation_types.get(input_element) ?? "",
+            "additional-validation-type": this.#additional_validation_types_element.get(input_element) ?? "",
             disabled: input_element.disabled,
             entries: structuredClone(this.#entries_types.get(input_element)) ?? [],
             "input-mode": input_element.inputMode ?? "",

@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-25-1
+
+Changes:
+
+- `addAdditionalValidationType`
+
 ## v2023-05-24-1
 
 Changes:
