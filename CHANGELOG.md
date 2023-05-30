@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-05-30-2
+
+Changes:
+
+- Fix WebKit
+
 ## v2023-05-30-1
 
 Changes:

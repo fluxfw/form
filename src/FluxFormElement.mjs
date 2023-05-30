@@ -900,7 +900,11 @@ export class FluxFormElement extends HTMLElement {
                 break;
 
             case type === INPUT_TYPE_NUMBER:
-                input_element.valueAsNumber = value !== null ? value : NaN;
+                if (value !== null) {
+                    input_element.valueAsNumber = value;
+                } else {
+                    input_element.value = "";
+                }
                 break;
 
             case type === INPUT_TYPE_SELECT && input_element.multiple: {
