@@ -9,13 +9,11 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_H
 /** @typedef {import("./Value.mjs").Value} Value */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
-flux_css_api.adopt(
-    document,
-    await flux_css_api.import(
-        `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementVariables.css`
-    ),
-    true
+const variables_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementVariables.css`
 );
+
+document.adoptedStyleSheets.unshift(variables_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
@@ -71,10 +69,7 @@ export class FluxFormElement extends HTMLElement {
             mode: "closed"
         });
 
-        flux_css_api.adopt(
-            this.#shadow,
-            css
-        );
+        this.#shadow.adoptedStyleSheets.push(css);
 
         const form_element = document.createElement("form");
         form_element.addEventListener("input", () => {
