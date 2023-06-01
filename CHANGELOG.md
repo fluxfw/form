@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2023-06-01-1
+
+Changes:
+
+- Split additional validation types
+- Async `validate`
+
 ## v2023-05-30-2
 
 Changes:

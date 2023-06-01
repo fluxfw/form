@@ -1,4 +1,4 @@
-import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "./ADDITIONAL_VALIDATION_TYPE.mjs";
+import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
@@ -65,6 +65,16 @@ export class FluxFormElement extends HTMLElement {
         this.#entries_types = new WeakMap();
         this.#has_custom_validation_messages = false;
 
+        for (const [
+            type,
+            validate_value
+        ] of Object.entries(DEFAULT_ADDITIONAL_VALIDATION_TYPES)) {
+            this.addAdditionalValidationType(
+                type,
+                validate_value
+            );
+        }
+
         this.#shadow = this.attachShadow({
             mode: "closed"
         });
@@ -89,6 +99,10 @@ export class FluxFormElement extends HTMLElement {
      * @returns {void}
      */
     addAdditionalValidationType(type, validate_value) {
+        if (this.#additional_validation_types.has(type)) {
+            throw new Error(`Additional validation type ${type} already exists`);
+        }
+
         this.#additional_validation_types.set(type, validate_value);
     }
 
@@ -204,9 +218,8 @@ export class FluxFormElement extends HTMLElement {
 
             input_element.disabled = input.disabled ?? false;
 
-            const additional_validation_type = input["additional-validation-type"] ?? "";
-            if (additional_validation_type !== "") {
-                this.#additional_validation_types_element.set(input_element, additional_validation_type);
+            if ((input["additional-validation-type"] ?? "") !== "") {
+                this.#additional_validation_types_element.set(input_element, input["additional-validation-type"]);
             }
 
             const input_mode = input["input-mode"] ?? "";
@@ -427,13 +440,15 @@ export class FluxFormElement extends HTMLElement {
 
     /**
      * @param {boolean | null} report
-     * @returns {boolean}
+     * @returns {Promise<boolean>}
      */
-    validate(report = null) {
+    async validate(report = null) {
         this.#removeCustomValidationMessages();
 
+        const _report = report ?? true;
+
         if (!this.#form_element.checkValidity()) {
-            if (report ?? true) {
+            if (_report) {
                 this.#form_element.reportValidity();
             }
 
@@ -452,8 +467,10 @@ export class FluxFormElement extends HTMLElement {
                     input_element
                 );
 
-                if (Array.from(container_element.querySelectorAll(FLUX_FORM_ELEMENT_TAG_NAME)).some(flux_form_element => !flux_form_element.validate())) {
-                    return false;
+                for (const flux_form_element of Array.from(container_element.querySelectorAll(FLUX_FORM_ELEMENT_TAG_NAME))) {
+                    if (!await flux_form_element.validate()) {
+                        return false;
+                    }
                 }
 
                 const entry_elements_length = container_element.querySelectorAll("[data-entry]").length;
@@ -462,53 +479,31 @@ export class FluxFormElement extends HTMLElement {
                 }
             }
 
-            if (this.#additional_validation_types_element.has(input_element)) {
-                const additional_validation_type = this.#additional_validation_types_element.get(input_element) ?? "";
-                if (additional_validation_type !== "") {
-                    switch (additional_validation_type) {
-                        case ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION:
-                            if ((value ?? "") === "") {
-                                continue;
-                            }
+            const additional_validation_type = this.#additional_validation_types_element.get(input_element) ?? "";
 
-                            try {
-                                if (typeof value !== "string") {
-                                    throw new Error();
-                                }
+            if (additional_validation_type === "") {
+                continue;
+            }
 
-                                new RegExp(value);
-                            } catch (error) {
-                                this.#setCustomValidationMessage(
-                                    input_element,
-                                    "Invalid regular expression!"
-                                );
-                                return false;
-                            }
-                            break;
+            const validate_value = this.#additional_validation_types.get(additional_validation_type) ?? null;
 
-                        default: {
-                            let validate_value;
+            if (validate_value === null) {
+                throw new Error(`Unknown additional validation type ${additional_validation_type}`);
+            }
 
-                            if (!this.#additional_validation_types.has(additional_validation_type) || (validate_value = this.#additional_validation_types.get(additional_validation_type) ?? null) === null) {
-                                throw new Error(`Unknown additional validation type ${additional_validation_type}`);
-                            }
+            const validate_value_result = await validate_value(
+                value
+            );
 
-                            const validate_value_result = validate_value(
-                                value
-                            );
-
-                            if (validate_value_result !== true) {
-                                if (validate_value_result !== false) {
-                                    this.#setCustomValidationMessage(
-                                        input_element,
-                                        validate_value_result
-                                    );
-                                }
-                                return false;
-                            }
-                        }
-                    }
+            if (validate_value_result !== true) {
+                if (_report && validate_value_result !== false) {
+                    this.#setCustomValidationMessage(
+                        input_element,
+                        validate_value_result
+                    );
                 }
+
+                return false;
             }
         }
 
