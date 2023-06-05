@@ -1,7 +1,7 @@
 import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
+import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputElement.mjs").InputElement} InputElement */
@@ -39,6 +39,10 @@ export class FluxFormElement extends HTMLElement {
      */
     #has_custom_validation_messages;
     /**
+     * @type {WeakMap<InputElement, string>}
+     */
+    #input_types;
+    /**
      * @type {ShadowRoot}
      */
     #shadow;
@@ -64,6 +68,7 @@ export class FluxFormElement extends HTMLElement {
         this.#additional_validation_types_element = new WeakMap();
         this.#entries_types = new WeakMap();
         this.#has_custom_validation_messages = false;
+        this.#input_types = new WeakMap();
 
         for (const [
             type,
@@ -200,6 +205,7 @@ export class FluxFormElement extends HTMLElement {
 
             this.#additional_validation_types_element.delete(input_element);
             this.#entries_types.delete(input_element);
+            this.#input_types.delete(input_element);
         });
 
         for (const input of inputs) {
@@ -373,6 +379,8 @@ export class FluxFormElement extends HTMLElement {
                 });
             }
 
+            this.#input_types.set(input_element, type);
+
             container_element.appendChild(input_element);
 
             if (type === INPUT_TYPE_COLOR) {
@@ -393,6 +401,29 @@ export class FluxFormElement extends HTMLElement {
                 set_container_element.appendChild(input_element);
 
                 container_element.appendChild(set_container_element);
+            }
+
+            if (type === INPUT_TYPE_PASSWORD) {
+                const view_container_element = document.createElement("div");
+                view_container_element.classList.add("inline_container");
+
+                view_container_element.appendChild(input_element);
+
+                const view_button_element = document.createElement("button");
+                view_button_element.innerText = "T";
+                view_button_element.type = "button";
+                view_button_element.addEventListener("click", () => {
+                    if (input_element.type === INPUT_TYPE_PASSWORD) {
+                        input_element.type = INPUT_TYPE_TEXT;
+                        view_button_element.innerText = "●";
+                    } else {
+                        input_element.type = INPUT_TYPE_PASSWORD;
+                        view_button_element.innerText = "T";
+                    }
+                });
+                view_container_element.appendChild(view_button_element);
+
+                container_element.appendChild(view_container_element);
             }
 
             if (type === INPUT_TYPE_SELECT && input_element.multiple) {
@@ -757,16 +788,7 @@ export class FluxFormElement extends HTMLElement {
      * @returns {string}
      */
     #getTypeFromInputElement(input_element) {
-        switch (true) {
-            case this.#entries_types.has(input_element):
-                return INPUT_TYPE_ENTRIES;
-
-            case input_element instanceof HTMLSelectElement:
-                return INPUT_TYPE_SELECT;
-
-            default:
-                return input_element.type;
-        }
+        return this.#input_types.get(input_element) ?? INPUT_TYPE_TEXT;
     }
 
     /**

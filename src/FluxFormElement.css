@@ -101,11 +101,33 @@ textarea {
 }
 
 button {
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--flux-form-button-background-color);
+    border: none;
+    border-radius: 0;
+    color: var(--flux-form-button-foreground-color);
     cursor: default;
+    height: 22px;
+    outline: none;
+    width: 22px;
 }
 
 button:not(:disabled) {
     cursor: pointer;
+}
+
+button:not(:disabled):focus-visible {
+    outline: 2px solid var(--flux-form-button-focus-outline-color);
+    outline-offset: -2px;
+}
+
+button:disabled {
+    opacity: 0.6;
+}
+
+button:not(:disabled):is(:hover, :active) {
+    background-color: var(--flux-form-active-button-background-color);
+    color: var(--flux-form-active-button-foreground-color);
 }
 
 .subtitle {

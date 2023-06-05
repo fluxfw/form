@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-06-05-1
+
+Changes:
+
+- View password
+
 ## v2023-06-01-1
 
 Changes:
