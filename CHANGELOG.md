@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-06-08-1
+
+Changes:
+
+- Clear button on date/time input types
+
 ## v2023-06-05-1
 
 Changes:

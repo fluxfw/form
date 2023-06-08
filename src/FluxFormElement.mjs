@@ -1,7 +1,7 @@
 import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
+import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA, INPUT_TYPE_TIME } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputElement.mjs").InputElement} InputElement */
@@ -426,7 +426,11 @@ export class FluxFormElement extends HTMLElement {
                 container_element.appendChild(view_container_element);
             }
 
-            if (type === INPUT_TYPE_SELECT && input_element.multiple) {
+            if ((type === INPUT_TYPE_SELECT && input_element.multiple) || [
+                INPUT_TYPE_DATE,
+                INPUT_TYPE_DATETIME_LOCAL,
+                INPUT_TYPE_TIME
+            ].includes(type)) {
                 const clear_container_element = document.createElement("div");
                 clear_container_element.classList.add("inline_container");
 
@@ -930,10 +934,6 @@ export class FluxFormElement extends HTMLElement {
                 for (const option_element of input_element.querySelectorAll("option")) {
                     option_element.selected = values.includes(option_element.value);
                 }
-
-                this.#updateClearButton(
-                    input_element
-                );
             }
                 break;
 
@@ -941,6 +941,10 @@ export class FluxFormElement extends HTMLElement {
                 input_element.value = value ?? "";
                 break;
         }
+
+        this.#updateClearButton(
+            input_element
+        );
     }
 
     /**
