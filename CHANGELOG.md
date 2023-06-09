@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-06-09-1
+
+Changes:
+
+- `valueToRegExp`
+
 ## v2023-06-08-1
 
 Changes:
