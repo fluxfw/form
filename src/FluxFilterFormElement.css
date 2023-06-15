@@ -1,0 +1,84 @@
+:host {
+    background-color: var(--flux-filter-form-background-color);
+    color: var(--flux-filter-form-foreground-color);
+    display: block;
+    height: auto;
+    max-width: 100%;
+    width: 100%;
+}
+
+form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    height: auto;
+    width: 100%;
+}
+
+.container {
+    align-items: start;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 5px;
+    height: auto;
+    width: 30%;
+}
+
+button, [data-add_input] {
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--flux-filter-form-button-background-color);
+    border: none;
+    border-radius: 0;
+    color: var(--flux-filter-form-button-foreground-color);
+    cursor: default;
+    flex-grow: 0;
+	flex-shrink: 0;
+    height: 22px;
+    min-width: 22px;
+    outline: none;
+    width: 22px;
+}
+
+[data-add_input] {
+    width: 30px;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+:is(button, [data-add_input]):not(:disabled):focus-visible {
+    outline: 2px solid var(--flux-filter-form-button-focus-outline-color);
+    outline-offset: -2px;
+}
+
+:is(button, [data-add_input]):disabled {
+    opacity: 0.6;
+}
+
+button:not(:disabled):is(:hover, :active) {
+    background-color: var(--flux-filter-form-active-button-background-color);
+    color: var(--flux-filter-form-active-button-foreground-color);
+}
+
+[data-input] {
+    --flux-input-active-button-background-color: var(--flux-filter-form-active-button-background-color);
+    --flux-input-active-button-foreground-color: var(--flux-filter-form-active-button-foreground-color);
+    --flux-input-background-color: var(--flux-filter-form-background-color);
+    --flux-input-button-background-color: var(--flux-filter-form-button-background-color);
+    --flux-input-button-focus-outline-color: var(--flux-filter-form-button-focus-outline-color);
+    --flux-input-button-foreground-color: var(--flux-filter-form-button-foreground-color);
+    --flux-input-foreground-color: var(--flux-filter-form-foreground-color);
+    --flux-input-input-background-color: var(--flux-filter-form-input-background-color);
+    --flux-input-input-border-color: var(--flux-filter-form-input-border-color);
+    --flux-input-input-focus-outline-color: var(--flux-filter-form-input-focus-outline-color);
+    --flux-input-input-foreground-color: var(--flux-filter-form-input-foreground-color);
+    --flux-input-input-invalid-border-color: var(--flux-filter-form-input-invalid-border-color);
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 0;
+}

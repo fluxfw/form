@@ -1,0 +1,14 @@
+:root {
+    --flux-input-active-button-background-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-active-button-foreground-color: var(--flux-color-scheme-background, #ffffff);
+    --flux-input-background-color: var(--flux-color-scheme-background, #ffffff);
+    --flux-input-button-background-color: var(--flux-color-scheme-accent, #000000);
+    --flux-input-button-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-button-foreground-color: var(--flux-color-scheme-accent-foreground, #ffffff);
+    --flux-input-foreground-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-input-background-color: var(--flux-color-scheme-background, #ffffff);
+    --flux-input-input-border-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-input-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-input-foreground-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-input-input-invalid-border-color: #ff0000;
+}

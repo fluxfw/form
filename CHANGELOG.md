@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2023-06-15-1
+
+Changes:
+
+- Split inputs from `FluxFormElement` to to `FluxInputElement`
+- `FluxFilterFormElement`
+
 ## v2023-06-09-1
 
 Changes:
