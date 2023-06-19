@@ -1,8 +1,8 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
-import { FluxInputElement } from "./FluxInputElement.mjs";
 import { FLUX_FILTER_FORM_EVENT_CHANGE, FLUX_FILTER_FORM_EVENT_INPUT } from "./FLUX_FILTER_FORM_EVENT.mjs";
 import { FLUX_INPUT_EVENT_CHANGE, FLUX_INPUT_EVENT_INPUT } from "./FLUX_INPUT_EVENT.mjs";
 
+/** @typedef {import("./FluxInputElement.mjs").FluxInputElement} FluxInputElement */
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
@@ -148,20 +148,15 @@ export class FluxFilterFormElement extends HTMLElement {
     }
 
     /**
-     * @returns {Input[]}
-     */
-    get inputs_with_name() {
-        return this.inputs.map(input => (input.name ?? "") !== "");
-    }
-
-    /**
      * @param {boolean} disabled
      * @returns {Promise<void>}
      */
     async setDisabled(disabled) {
-        this.#form_element.querySelectorAll("button").forEach(button_element => {
-            button_element.disabled = disabled;
+        this.#form_element.querySelectorAll("button").forEach(element => {
+            element.disabled = disabled;
         });
+
+        this.#add_input_element.disabled = disabled;
 
         for (const flux_input_element of this.#flux_input_elements) {
             await flux_input_element.setDisabled(
@@ -203,10 +198,6 @@ export class FluxFilterFormElement extends HTMLElement {
      */
     async setValues(values = null) {
         for (const input of this.#inputs) {
-            if ((input.name ?? "") === "") {
-                continue;
-            }
-
             const value = values?.filter(_value => _value.name === input.name) ?? [];
 
             if (value.length > 0) {
@@ -247,10 +238,17 @@ export class FluxFilterFormElement extends HTMLElement {
      * @returns {InputValue[]}
      */
     get values() {
-        return this.#flux_input_elements_with_name.map(flux_input_element => ({
+        return this.#flux_input_elements.map(flux_input_element => ({
             name: flux_input_element.name,
             value: flux_input_element.value
         }));
+    }
+
+    /**
+     * @returns {HTMLSelectElement}
+     */
+    get #add_input_element() {
+        return this.#form_element.querySelector("[data-add_input]");
     }
 
     /**
@@ -273,12 +271,19 @@ export class FluxFilterFormElement extends HTMLElement {
             return exists_flux_input_element;
         }
 
+        const add_input_element = this.#add_input_element;
+
         const container_element = document.createElement("div");
         container_element.classList.add("container");
 
-        const flux_input_element = await FluxInputElement.newWithInput(
+        const flux_input_element = await (await import("./FluxInputElement.mjs")).FluxInputElement.newWithInput(
             input
         );
+        if (add_input_element.disabled) {
+            await flux_input_element.setDisabled(
+                true
+            );
+        }
         flux_input_element.dataset.input = index;
         flux_input_element.addEventListener(FLUX_INPUT_EVENT_CHANGE, e => {
             this.dispatchEvent(new CustomEvent(FLUX_FILTER_FORM_EVENT_CHANGE, {
@@ -308,6 +313,7 @@ export class FluxFilterFormElement extends HTMLElement {
         }
 
         const remove_button_element = document.createElement("button");
+        remove_button_element.disabled = add_input_element.disabled;
         remove_button_element.innerText = "X";
         remove_button_element.type = "button";
         remove_button_element.addEventListener("click", () => {
@@ -344,13 +350,6 @@ export class FluxFilterFormElement extends HTMLElement {
      */
     get #flux_input_elements() {
         return Array.from(this.#form_element.querySelectorAll("[data-input]"));
-    }
-
-    /**
-     * @returns {FluxInputElement[]}
-     */
-    get #flux_input_elements_with_name() {
-        return this.#flux_input_elements.filter(flux_input_element => flux_input_element.name !== "");
     }
 
     /**
@@ -411,7 +410,7 @@ export class FluxFilterFormElement extends HTMLElement {
      * @returns {void}
      */
     #updateAddInputs() {
-        const add_input_element = this.#form_element.querySelector("[data-add_input]");
+        const add_input_element = this.#add_input_element;
 
         const inputs = Array.from(this.#not_added_inputs.entries()).sort(([
             ,
@@ -426,11 +425,11 @@ export class FluxFilterFormElement extends HTMLElement {
             return label_1 > label_2 ? 1 : label_1 < label_2 ? -1 : 0;
         });
 
+        add_input_element.value = "";
+
         Array.from(add_input_element.options).filter(option_element => option_element.value !== "").forEach(option_element => {
             option_element.remove();
         });
-
-        add_input_element.value = "";
 
         for (const [
             index,

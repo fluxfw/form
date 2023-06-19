@@ -1,8 +1,8 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
-import { FluxInputElement } from "./FluxInputElement.mjs";
 import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
 import { FLUX_INPUT_EVENT_CHANGE, FLUX_INPUT_EVENT_INPUT } from "./FLUX_INPUT_EVENT.mjs";
 
+/** @typedef {import("./FluxInputElement.mjs").FluxInputElement} FluxInputElement */
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
@@ -95,13 +95,6 @@ export class FluxFormElement extends HTMLElement {
     }
 
     /**
-     * @returns {Input[]}
-     */
-    get inputs_with_name() {
-        return this.#flux_input_elements_with_name.map(flux_input_element => flux_input_element.input);
-    }
-
-    /**
      * @param {boolean} disabled
      * @returns {Promise<void>}
      */
@@ -123,38 +116,9 @@ export class FluxFormElement extends HTMLElement {
         });
 
         for (const input of inputs) {
-            const flux_input_element = await FluxInputElement.newWithInput(
+            await this.#addInput(
                 input
             );
-            flux_input_element.dataset.input = true;
-            flux_input_element.addEventListener(FLUX_INPUT_EVENT_CHANGE, e => {
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
-                    detail: {
-                        name: flux_input_element.name,
-                        value: e.detail.value
-                    }
-                }));
-            });
-            flux_input_element.addEventListener(FLUX_INPUT_EVENT_INPUT, e => {
-                this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
-                    detail: {
-                        name: flux_input_element.name,
-                        value: e.detail.value
-                    }
-                }));
-            });
-
-            for (const [
-                type,
-                validate_value
-            ] of this.#additional_validation_types) {
-                flux_input_element.addAdditionalValidationType(
-                    type,
-                    validate_value
-                );
-            }
-
-            this.#form_element.appendChild(flux_input_element);
         }
     }
 
@@ -163,7 +127,7 @@ export class FluxFormElement extends HTMLElement {
      * @returns {Promise<void>}
      */
     async setValues(values = null) {
-        for (const flux_input_element of this.#flux_input_elements_with_name) {
+        for (const flux_input_element of this.#flux_input_elements) {
             await flux_input_element.setValue(
                 values?.find(_value => _value.name === flux_input_element.name)?.value ?? null
             );
@@ -190,10 +154,49 @@ export class FluxFormElement extends HTMLElement {
      * @returns {InputValue[]}
      */
     get values() {
-        return this.#flux_input_elements_with_name.map(flux_input_element => ({
+        return this.#flux_input_elements.map(flux_input_element => ({
             name: flux_input_element.name,
             value: flux_input_element.value
         }));
+    }
+
+    /**
+     * @param {Input} input
+     * @returns {Promise<void>}
+     */
+    async #addInput(input) {
+        const flux_input_element = await (await import("./FluxInputElement.mjs")).FluxInputElement.newWithInput(
+            input
+        );
+        flux_input_element.dataset.input = true;
+        flux_input_element.addEventListener(FLUX_INPUT_EVENT_CHANGE, e => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+                detail: {
+                    name: flux_input_element.name,
+                    value: e.detail.value
+                }
+            }));
+        });
+        flux_input_element.addEventListener(FLUX_INPUT_EVENT_INPUT, e => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+                detail: {
+                    name: flux_input_element.name,
+                    value: e.detail.value
+                }
+            }));
+        });
+
+        for (const [
+            type,
+            validate_value
+        ] of this.#additional_validation_types) {
+            flux_input_element.addAdditionalValidationType(
+                type,
+                validate_value
+            );
+        }
+
+        this.#form_element.appendChild(flux_input_element);
     }
 
     /**
@@ -201,13 +204,6 @@ export class FluxFormElement extends HTMLElement {
      */
     get #flux_input_elements() {
         return Array.from(this.#form_element.querySelectorAll("[data-input]"));
-    }
-
-    /**
-     * @returns {FluxInputElement[]}
-     */
-    get #flux_input_elements_with_name() {
-        return this.#flux_input_elements.filter(flux_input_element => flux_input_element.name !== "");
     }
 
     /**

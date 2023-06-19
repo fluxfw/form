@@ -262,7 +262,7 @@ export class FluxInputElement extends HTMLElement {
             this.#input_element.multiple = input.multiple ?? false;
         }
 
-        this.name = input.name ?? "";
+        this.name = input.name;
 
         if (this.#type === INPUT_TYPE_SELECT) {
             const options = [

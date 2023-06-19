@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-06-19-1
+
+Changes:
+
+- Remove empty names
+
 ## v2023-06-15-1
 
 Changes:
