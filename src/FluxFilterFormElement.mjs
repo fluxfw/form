@@ -7,11 +7,11 @@ import { FLUX_INPUT_EVENT_CHANGE, FLUX_INPUT_EVENT_INPUT } from "./FLUX_INPUT_EV
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
-const variables_css = await flux_css_api.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFilterFormElementVariables.css`
+const root_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFilterFormElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(variables_css);
+document.adoptedStyleSheets.unshift(root_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFilterFormElement.css`
@@ -77,7 +77,7 @@ export class FluxFilterFormElement extends HTMLElement {
         const option_element = document.createElement("option");
         option_element.label = "+";
         option_element.value = "";
-        add_input_element.appendChild(option_element);
+        add_input_element.append(option_element);
         add_input_element.addEventListener("input", async () => {
             if (add_input_element.value === "") {
                 return;
@@ -112,10 +112,10 @@ export class FluxFilterFormElement extends HTMLElement {
                 }
             }));
         });
-        add_input_container_element.appendChild(add_input_element);
-        form_element.appendChild(add_input_container_element);
+        add_input_container_element.append(add_input_element);
+        form_element.append(add_input_container_element);
 
-        this.#shadow.appendChild(form_element);
+        this.#shadow.append(form_element);
     }
 
     /**
@@ -332,9 +332,9 @@ export class FluxFilterFormElement extends HTMLElement {
                 }
             }));
         });
-        container_element.appendChild(remove_button_element);
+        container_element.append(remove_button_element);
 
-        container_element.appendChild(flux_input_element);
+        container_element.append(flux_input_element);
 
         this.#form_element.lastElementChild.before(container_element);
 
@@ -438,7 +438,7 @@ export class FluxFilterFormElement extends HTMLElement {
             const option_element = document.createElement("option");
             option_element.label = _input.label ?? "";
             option_element.value = index;
-            add_input_element.appendChild(option_element);
+            add_input_element.append(option_element);
         }
 
         add_input_element.hidden = inputs.length === 0;

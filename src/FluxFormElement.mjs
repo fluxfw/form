@@ -7,11 +7,11 @@ import { FLUX_INPUT_EVENT_CHANGE, FLUX_INPUT_EVENT_INPUT } from "./FLUX_INPUT_EV
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
-const variables_css = await flux_css_api.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementVariables.css`
+const root_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(variables_css);
+document.adoptedStyleSheets.unshift(root_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
@@ -64,7 +64,7 @@ export class FluxFormElement extends HTMLElement {
         form_element.addEventListener("submit", e => {
             e.preventDefault();
         });
-        this.#shadow.appendChild(form_element);
+        this.#shadow.append(form_element);
     }
 
     /**
@@ -196,7 +196,7 @@ export class FluxFormElement extends HTMLElement {
             );
         }
 
-        this.#form_element.appendChild(flux_input_element);
+        this.#form_element.append(flux_input_element);
     }
 
     /**

@@ -9,11 +9,11 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATE
 /** @typedef {import("./Value.mjs").Value} Value */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
-const variables_css = await flux_css_api.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxInputElementVariables.css`
+const root_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxInputElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(variables_css);
+document.adoptedStyleSheets.unshift(root_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxInputElement.css`
@@ -225,7 +225,7 @@ export class FluxInputElement extends HTMLElement {
         const label_element = document.createElement("div");
         label_element.classList.add("label");
         label_element.innerText = input.label ?? "";
-        this.#container_element.appendChild(label_element);
+        this.#container_element.append(label_element);
 
         this.#type = input.type ?? INPUT_TYPE_TEXT;
 
@@ -289,7 +289,7 @@ export class FluxInputElement extends HTMLElement {
 
                 option_element.value = option.value;
 
-                this.#input_element.appendChild(option_element);
+                this.#input_element.append(option_element);
             }
 
             if (this.#input_element.multiple) {
@@ -332,7 +332,7 @@ export class FluxInputElement extends HTMLElement {
 
             const entries_element = document.createElement("div");
             entries_element.dataset.entries = true;
-            this.#container_element.appendChild(entries_element);
+            this.#container_element.append(entries_element);
 
             if (_min_length === -1 || this.#input_element.maxLength === -1 || _min_length !== this.#input_element.maxLength) {
                 const add_entry_button_element = document.createElement("button");
@@ -356,7 +356,7 @@ export class FluxInputElement extends HTMLElement {
                         }
                     }));
                 });
-                this.#container_element.appendChild(add_entry_button_element);
+                this.#container_element.append(add_entry_button_element);
             }
         } else {
             if (this.#input_element instanceof HTMLInputElement) {
@@ -383,7 +383,7 @@ export class FluxInputElement extends HTMLElement {
             });
         }
 
-        this.#container_element.appendChild(this.#input_element);
+        this.#container_element.append(this.#input_element);
 
         if (this.#type === INPUT_TYPE_COLOR) {
             const set_container_element = document.createElement("div");
@@ -396,18 +396,18 @@ export class FluxInputElement extends HTMLElement {
             set_input_element.addEventListener("input", () => {
                 this.#updateSetCheckbox();
             });
-            set_container_element.appendChild(set_input_element);
+            set_container_element.append(set_input_element);
 
-            set_container_element.appendChild(this.#input_element);
+            set_container_element.append(this.#input_element);
 
-            this.#container_element.appendChild(set_container_element);
+            this.#container_element.append(set_container_element);
         }
 
         if (this.#type === INPUT_TYPE_PASSWORD) {
             const view_container_element = document.createElement("div");
             view_container_element.classList.add("container");
 
-            view_container_element.appendChild(this.#input_element);
+            view_container_element.append(this.#input_element);
 
             const view_button_element = document.createElement("button");
             view_button_element.innerText = "T";
@@ -421,9 +421,9 @@ export class FluxInputElement extends HTMLElement {
                     view_button_element.innerText = "T";
                 }
             });
-            view_container_element.appendChild(view_button_element);
+            view_container_element.append(view_button_element);
 
-            this.#container_element.appendChild(view_container_element);
+            this.#container_element.append(view_container_element);
         }
 
         if ((this.#type === INPUT_TYPE_SELECT && this.#input_element.multiple) || [
@@ -434,7 +434,7 @@ export class FluxInputElement extends HTMLElement {
             const clear_container_element = document.createElement("div");
             clear_container_element.classList.add("container");
 
-            clear_container_element.appendChild(this.#input_element);
+            clear_container_element.append(this.#input_element);
 
             const clear_button_element = document.createElement("button");
             clear_button_element.dataset.clear_button = true;
@@ -445,9 +445,9 @@ export class FluxInputElement extends HTMLElement {
                     null
                 );
             });
-            clear_container_element.appendChild(clear_button_element);
+            clear_container_element.append(clear_button_element);
 
-            this.#container_element.appendChild(clear_container_element);
+            this.#container_element.append(clear_container_element);
         }
 
         await this.setDisabled(
@@ -460,9 +460,9 @@ export class FluxInputElement extends HTMLElement {
         const subtitle_element = document.createElement("div");
         subtitle_element.classList.add("subtitle");
         subtitle_element.innerText = input.subtitle ?? "";
-        this.#container_element.appendChild(subtitle_element);
+        this.#container_element.append(subtitle_element);
 
-        this.#shadow.appendChild(this.#container_element);
+        this.#shadow.append(this.#container_element);
     }
 
     /**
@@ -658,7 +658,7 @@ export class FluxInputElement extends HTMLElement {
                     }
                 }));
             });
-            entry_element.appendChild(move_entry_up_button_element);
+            entry_element.append(move_entry_up_button_element);
 
             const move_entry_down_button_element = document.createElement("button");
             move_entry_down_button_element.dataset.move_entry_down_button = true;
@@ -683,7 +683,7 @@ export class FluxInputElement extends HTMLElement {
                     }
                 }));
             });
-            entry_element.appendChild(move_entry_down_button_element);
+            entry_element.append(move_entry_down_button_element);
         }
 
         if (min_length === -1 || this.#input_element.maxLength === -1 || min_length !== this.#input_element.maxLength) {
@@ -712,7 +712,7 @@ export class FluxInputElement extends HTMLElement {
                     }
                 }));
             });
-            entry_element.appendChild(remove_button_element);
+            entry_element.append(remove_button_element);
         }
 
         const {
@@ -737,9 +737,9 @@ export class FluxInputElement extends HTMLElement {
                 }
             }));
         });
-        entry_element.appendChild(flux_form_element);
+        entry_element.append(flux_form_element);
 
-        this.#container_element.querySelector("[data-entries]").appendChild(entry_element);
+        this.#container_element.querySelector("[data-entries]").append(entry_element);
 
         await flux_form_element.setDisabled(
             this.#input_element.disabled

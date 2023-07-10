@@ -1,0 +1,14 @@
+:root {
+    --flux-filter-form-active-button-background-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-active-button-foreground-color: var(--flux-color-scheme-background-color, #ffffff);
+    --flux-filter-form-background-color: var(--flux-color-scheme-background-color, #ffffff);
+    --flux-filter-form-button-background-color: var(--flux-color-scheme-accent-color, #000000);
+    --flux-filter-form-button-focus-outline-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-button-foreground-color: var(--flux-color-scheme-accent-color-foreground-color, #ffffff);
+    --flux-filter-form-foreground-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-input-background-color: var(--flux-color-scheme-background-color, #ffffff);
+    --flux-filter-form-input-border-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-input-focus-outline-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-input-foreground-color: var(--flux-color-scheme-foreground-color, #000000);
+    --flux-filter-form-input-invalid-border-color: #ff0000;
+}
