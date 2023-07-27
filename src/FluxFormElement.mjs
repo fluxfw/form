@@ -1,21 +1,24 @@
-import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
-import { FLUX_FORM_EVENT_CHANGE, FLUX_FORM_EVENT_INPUT } from "./FLUX_FORM_EVENT.mjs";
-import { FLUX_INPUT_EVENT_CHANGE, FLUX_INPUT_EVENT_INPUT } from "./FLUX_INPUT_EVENT.mjs";
+import { flux_import_css } from "../../flux-style-sheet-manager/src/FluxImportCss.mjs";
 
 /** @typedef {import("./FluxInputElement.mjs").FluxInputElement} FluxInputElement */
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
+/** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
 
-const root_css = await flux_css_api.import(
+const root_css = await flux_import_css.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(root_css);
-
-const css = await flux_css_api.import(
+const css = await flux_import_css.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
 );
+
+export const FLUX_FORM_ELEMENT_EVENT_CHANGE = "flux-form-change";
+
+export const FLUX_FORM_ELEMENT_EVENT_INPUT = "flux-form-input";
+
+export const FLUX_FORM_ELEMENT_VARIABLE_PREFIX = "--flux-form-";
 
 export class FluxFormElement extends HTMLElement {
     /**
@@ -26,31 +29,67 @@ export class FluxFormElement extends HTMLElement {
      * @type {ShadowRoot}
      */
     #shadow;
+    /**
+     * @type {StyleSheetManager | null}
+     */
+    #style_sheet_manager;
 
     /**
-     * @param {Input[]} inputs
+     * @param {Input[] | null} inputs
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<FluxFormElement>}
      */
-    static async newWithInputs(inputs) {
-        const flux_form_element = this.new();
+    static async new(inputs = null, style_sheet_manager = null) {
+        if (style_sheet_manager !== null) {
+            await style_sheet_manager.generateVariableStyleSheet(
+                this.name,
+                {
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}active-button-foreground-color`]: "background-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}background-color`]: "background-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}button-background-color`]: "accent-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}button-focus-outline-color`]: "foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}button-foreground-color`]: "accent-color-foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}foreground-color`]: "foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}input-background-color`]: "background-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}input-border-color`]: "foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}input-focus-outline-color`]: "foreground-color",
+                    [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}input-foreground-color`]: "foreground-color"
+                },
+                true
+            );
 
-        await flux_form_element.setInputs(inputs);
+            await style_sheet_manager.addStyleSheet(
+                root_css,
+                true
+            );
+        } else {
+            if (!document.adoptedStyleSheets.includes(root_css)) {
+                document.adoptedStyleSheets.unshift(root_css);
+            }
+        }
+
+        const flux_form_element = new this(
+            style_sheet_manager
+        );
+
+        if (inputs !== null) {
+            await flux_form_element.setInputs(
+                inputs
+            );
+        }
 
         return flux_form_element;
     }
 
     /**
-     * @returns {FluxFormElement}
-     */
-    static new() {
-        return new this();
-    }
-
-    /**
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @private
      */
-    constructor() {
+    constructor(style_sheet_manager) {
         super();
+
+        this.#style_sheet_manager = style_sheet_manager;
 
         this.#additional_validation_types = new Map();
 
@@ -70,9 +109,9 @@ export class FluxFormElement extends HTMLElement {
     /**
      * @param {string} type
      * @param {validateValue} validate_value
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    addAdditionalValidationType(type, validate_value) {
+    async addAdditionalValidationType(type, validate_value) {
         if (this.#additional_validation_types.has(type)) {
             throw new Error(`Additional validation type ${type} already exists`);
         }
@@ -80,7 +119,7 @@ export class FluxFormElement extends HTMLElement {
         this.#additional_validation_types.set(type, validate_value);
 
         for (const flux_input_element of this.#flux_input_elements) {
-            flux_input_element.addAdditionalValidationType(
+            await flux_input_element.addAdditionalValidationType(
                 type,
                 validate_value
             );
@@ -165,20 +204,27 @@ export class FluxFormElement extends HTMLElement {
      * @returns {Promise<void>}
      */
     async #addInput(input) {
-        const flux_input_element = await (await import("./FluxInputElement.mjs")).FluxInputElement.newWithInput(
-            input
+        const {
+            FLUX_INPUT_ELEMENT_EVENT_CHANGE,
+            FLUX_INPUT_ELEMENT_EVENT_INPUT,
+            FluxInputElement
+        } = await import("./FluxInputElement.mjs");
+
+        const flux_input_element = await FluxInputElement.new(
+            input,
+            this.#style_sheet_manager
         );
         flux_input_element.dataset.input = true;
-        flux_input_element.addEventListener(FLUX_INPUT_EVENT_CHANGE, e => {
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_CHANGE, {
+        flux_input_element.addEventListener(FLUX_INPUT_ELEMENT_EVENT_CHANGE, e => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_ELEMENT_EVENT_CHANGE, {
                 detail: {
                     name: flux_input_element.name,
                     value: e.detail.value
                 }
             }));
         });
-        flux_input_element.addEventListener(FLUX_INPUT_EVENT_INPUT, e => {
-            this.dispatchEvent(new CustomEvent(FLUX_FORM_EVENT_INPUT, {
+        flux_input_element.addEventListener(FLUX_INPUT_ELEMENT_EVENT_INPUT, e => {
+            this.dispatchEvent(new CustomEvent(FLUX_FORM_ELEMENT_EVENT_INPUT, {
                 detail: {
                     name: flux_input_element.name,
                     value: e.detail.value
@@ -190,7 +236,7 @@ export class FluxFormElement extends HTMLElement {
             type,
             validate_value
         ] of this.#additional_validation_types) {
-            flux_input_element.addAdditionalValidationType(
+            await flux_input_element.addAdditionalValidationType(
                 type,
                 validate_value
             );
