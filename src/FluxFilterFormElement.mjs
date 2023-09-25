@@ -45,7 +45,7 @@ export class FluxFilterFormElement extends HTMLElement {
      */
     static async new(inputs = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
-            await style_sheet_manager.generateVariableStyleSheet(
+            await style_sheet_manager.generateVariablesRootStyleSheet(
                 this.name,
                 {
                     [`${FLUX_FILTER_FORM_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
@@ -63,7 +63,7 @@ export class FluxFilterFormElement extends HTMLElement {
                 true
             );
 
-            await style_sheet_manager.addStyleSheet(
+            await style_sheet_manager.addRootStyleSheet(
                 root_css,
                 true
             );
@@ -77,32 +77,15 @@ export class FluxFilterFormElement extends HTMLElement {
             style_sheet_manager
         );
 
-        if (inputs === null) {
-            await flux_filter_form_element.setInputs(
-                inputs
-            );
-        }
-
-        return flux_filter_form_element;
-    }
-
-    /**
-     * @param {StyleSheetManager | null} style_sheet_manager
-     * @private
-     */
-    constructor(style_sheet_manager) {
-        super();
-
-        this.#style_sheet_manager = style_sheet_manager;
-
-        this.#additional_validation_types = new Map();
-        this.#inputs = [];
-
-        this.#shadow = this.attachShadow({
+        flux_filter_form_element.#shadow = flux_filter_form_element.attachShadow({
             mode: "closed"
         });
 
-        this.#shadow.adoptedStyleSheets.push(css);
+        await flux_filter_form_element.#style_sheet_manager.addStyleSheetsToShadow(
+            flux_filter_form_element.#shadow
+        );
+
+        flux_filter_form_element.#shadow.adoptedStyleSheets.push(css);
 
         const form_element = document.createElement("form");
         form_element.addEventListener("submit", e => {
@@ -122,15 +105,15 @@ export class FluxFilterFormElement extends HTMLElement {
                 return;
             }
 
-            const input = this.#not_added_inputs[add_input_element.value] ?? null;
+            const input = flux_filter_form_element.#not_added_inputs[add_input_element.value] ?? null;
 
-            this.#updateAddInputs();
+            flux_filter_form_element.#updateAddInputs();
 
             if (input === null) {
                 return;
             }
 
-            const flux_input_element = await this.#addInput(
+            const flux_input_element = await flux_filter_form_element.#addInput(
                 input
             );
 
@@ -138,13 +121,13 @@ export class FluxFilterFormElement extends HTMLElement {
                 return;
             }
 
-            this.dispatchEvent(new CustomEvent(FLUX_FILTER_FORM_ELEMENT_EVENT_INPUT, {
+            flux_filter_form_element.dispatchEvent(new CustomEvent(FLUX_FILTER_FORM_ELEMENT_EVENT_INPUT, {
                 detail: {
                     name: flux_input_element.name,
                     value: flux_input_element.value
                 }
             }));
-            this.dispatchEvent(new CustomEvent(FLUX_FILTER_FORM_ELEMENT_EVENT_CHANGE, {
+            flux_filter_form_element.dispatchEvent(new CustomEvent(FLUX_FILTER_FORM_ELEMENT_EVENT_CHANGE, {
                 detail: {
                     name: flux_input_element.name,
                     value: flux_input_element.value
@@ -154,7 +137,27 @@ export class FluxFilterFormElement extends HTMLElement {
         add_input_container_element.append(add_input_element);
         form_element.append(add_input_container_element);
 
-        this.#shadow.append(form_element);
+        flux_filter_form_element.#shadow.append(form_element);
+
+        if (inputs === null) {
+            await flux_filter_form_element.setInputs(
+                inputs
+            );
+        }
+
+        return flux_filter_form_element;
+    }
+
+    /**
+     * @param {StyleSheetManager | null} style_sheet_manager
+     * @private
+     */
+    constructor(style_sheet_manager) {
+        super();
+
+        this.#style_sheet_manager = style_sheet_manager;
+        this.#additional_validation_types = new Map();
+        this.#inputs = [];
     }
 
     /**

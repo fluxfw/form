@@ -68,7 +68,7 @@ export class FluxInputElement extends HTMLElement {
      */
     static async new(input = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
-            await style_sheet_manager.generateVariableStyleSheet(
+            await style_sheet_manager.generateVariablesRootStyleSheet(
                 this.name,
                 {
                     [`${FLUX_INPUT_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
@@ -86,7 +86,7 @@ export class FluxInputElement extends HTMLElement {
                 true
             );
 
-            await style_sheet_manager.addStyleSheet(
+            await style_sheet_manager.addRootStyleSheet(
                 root_css,
                 true
             );
@@ -99,6 +99,18 @@ export class FluxInputElement extends HTMLElement {
         const flux_input_element = new this(
             style_sheet_manager
         );
+
+        flux_input_element.#shadow = flux_input_element.attachShadow({
+            mode: "closed"
+        });
+
+        await flux_input_element.#style_sheet_manager.addStyleSheetsToShadow(
+            flux_input_element.#shadow
+        );
+
+        flux_input_element.#shadow.adoptedStyleSheets.push(css);
+
+        flux_input_element.#removeInput();
 
         for (const [
             type,
@@ -127,17 +139,8 @@ export class FluxInputElement extends HTMLElement {
         super();
 
         this.#style_sheet_manager = style_sheet_manager;
-
         this.#additional_validation_types = new Map();
         this.#has_custom_validation_message = false;
-
-        this.#shadow = this.attachShadow({
-            mode: "closed"
-        });
-
-        this.#shadow.adoptedStyleSheets.push(css);
-
-        this.#removeInput();
     }
 
     /**

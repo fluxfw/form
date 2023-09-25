@@ -41,7 +41,7 @@ export class FluxFormElement extends HTMLElement {
      */
     static async new(inputs = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
-            await style_sheet_manager.generateVariableStyleSheet(
+            await style_sheet_manager.generateVariablesRootStyleSheet(
                 this.name,
                 {
                     [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
@@ -59,7 +59,7 @@ export class FluxFormElement extends HTMLElement {
                 true
             );
 
-            await style_sheet_manager.addStyleSheet(
+            await style_sheet_manager.addRootStyleSheet(
                 root_css,
                 true
             );
@@ -72,6 +72,22 @@ export class FluxFormElement extends HTMLElement {
         const flux_form_element = new this(
             style_sheet_manager
         );
+
+        flux_form_element.#shadow = flux_form_element.attachShadow({
+            mode: "closed"
+        });
+
+        await flux_form_element.#style_sheet_manager.addStyleSheetsToShadow(
+            flux_form_element.#shadow
+        );
+
+        flux_form_element.#shadow.adoptedStyleSheets.push(css);
+
+        const form_element = document.createElement("form");
+        form_element.addEventListener("submit", e => {
+            e.preventDefault();
+        });
+        flux_form_element.#shadow.append(form_element);
 
         if (inputs !== null) {
             await flux_form_element.setInputs(
@@ -90,20 +106,7 @@ export class FluxFormElement extends HTMLElement {
         super();
 
         this.#style_sheet_manager = style_sheet_manager;
-
         this.#additional_validation_types = new Map();
-
-        this.#shadow = this.attachShadow({
-            mode: "closed"
-        });
-
-        this.#shadow.adoptedStyleSheets.push(css);
-
-        const form_element = document.createElement("form");
-        form_element.addEventListener("submit", e => {
-            e.preventDefault();
-        });
-        this.#shadow.append(form_element);
     }
 
     /**
