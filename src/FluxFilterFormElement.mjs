@@ -81,7 +81,7 @@ export class FluxFilterFormElement extends HTMLElement {
             mode: "closed"
         });
 
-        await flux_filter_form_element.#style_sheet_manager.addStyleSheetsToShadow(
+        await flux_filter_form_element.#style_sheet_manager?.addStyleSheetsToShadow(
             flux_filter_form_element.#shadow
         );
 

@@ -77,7 +77,7 @@ export class FluxFormElement extends HTMLElement {
             mode: "closed"
         });
 
-        await flux_form_element.#style_sheet_manager.addStyleSheetsToShadow(
+        await flux_form_element.#style_sheet_manager?.addStyleSheetsToShadow(
             flux_form_element.#shadow
         );
 

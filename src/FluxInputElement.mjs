@@ -104,7 +104,7 @@ export class FluxInputElement extends HTMLElement {
             mode: "closed"
         });
 
-        await flux_input_element.#style_sheet_manager.addStyleSheetsToShadow(
+        await flux_input_element.#style_sheet_manager?.addStyleSheetsToShadow(
             flux_input_element.#shadow
         );
 
