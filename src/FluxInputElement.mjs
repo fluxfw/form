@@ -175,6 +175,8 @@ export class FluxInputElement extends HTMLElement {
             throw new Error("Missing input");
         }
 
+        const options = Array.from(this.#input_element.querySelectorAll("option"));
+
         return {
             "additional-validation-type": this.#additional_validation_type,
             disabled: this.#input_element.disabled,
@@ -187,12 +189,13 @@ export class FluxInputElement extends HTMLElement {
             "min-length": this.#input_element.minLength ?? -1,
             multiple: this.#input_element.multiple ?? false,
             name: this.name,
-            options: Array.from(this.#input_element.querySelectorAll("option")).filter(option_element => this.#input_element.multiple || option_element.value !== "").map(option_element => ({
+            options: options.filter(option_element => this.#input_element.multiple || option_element.value !== "").map(option_element => ({
                 disabled: option_element.disabled,
                 label: option_element.text,
                 title: option_element.title,
                 value: option_element.value
             })),
+            options_no_empty_value: this.#input_element.multiple ? false : !options.some(option_element => option_element.value === ""),
             pattern: this.#input_element.pattern ?? "",
             placeholder: this.#input_element.placeholder ?? "",
             "read-only": this.#input_element.readOnly ?? false,
@@ -309,12 +312,12 @@ export class FluxInputElement extends HTMLElement {
 
         if (this.#type === INPUT_TYPE_SELECT) {
             const options = [
-                ...!this.#input_element.multiple ? [
+                ...!this.#input_element.multiple ? !(input.options_no_empty_value ?? false) ? [
                     {
                         label: "--",
                         value: ""
                     }
-                ] : [],
+                ] : [] : [],
                 ...input.options ?? []
             ];
 

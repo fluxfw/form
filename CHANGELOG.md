@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2023-11-21-1
+
+Changes:
+
+- `options_no_empty_value`
+
 ## v2023-09-25-2
 
 Changes:
