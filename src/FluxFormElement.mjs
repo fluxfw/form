@@ -42,7 +42,7 @@ export class FluxFormElement extends HTMLElement {
     static async new(inputs = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
             await style_sheet_manager.generateVariablesRootStyleSheet(
-                this.name,
+                FLUX_FORM_ELEMENT_VARIABLE_PREFIX,
                 {
                     [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
                     [`${FLUX_FORM_ELEMENT_VARIABLE_PREFIX}active-button-foreground-color`]: "background-color",
