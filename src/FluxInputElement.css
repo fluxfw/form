@@ -22,7 +22,7 @@ input, select, textarea {
     box-sizing: content-box;
     color: var(--flux-input-input-foreground-color);
     cursor: default;
-    font-family: inherit;
+    font-family: unset;
     font-size: 16px;
     height: 25px;
     outline: none;
@@ -107,6 +107,7 @@ button {
     border-radius: 0;
     color: var(--flux-input-button-foreground-color);
     cursor: default;
+    font-family: unset;
     height: 22px;
     outline: none;
     width: 22px;

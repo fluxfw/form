@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-01-09-1
+
+Changes:
+
+- Remove font family from buttons
+
 ## v2023-12-12-1
 
 Changes:
