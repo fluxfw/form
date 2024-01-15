@@ -1,5 +1,6 @@
 import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
-import { flux_import_css } from "../../flux-style-sheet-manager/src/FluxImportCss.mjs";
+import css from "./FluxInputElement.css" with { type: "css" };
+import root_css from "./FluxInputElementRoot.css" with { type: "css" };
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA, INPUT_TYPE_TIME } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
@@ -8,14 +9,6 @@ import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATE
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./Value.mjs").Value} Value */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
-
-const root_css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxInputElementRoot.css`
-);
-
-const css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxInputElement.css`
-);
 
 export const FLUX_INPUT_ELEMENT_EVENT_CHANGE = "flux-input-change";
 

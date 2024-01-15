@@ -1,18 +1,11 @@
-import { flux_import_css } from "../../flux-style-sheet-manager/src/FluxImportCss.mjs";
+import css from "./FluxFormElement.css" with { type: "css" };
+import root_css from "./FluxFormElementRoot.css" with { type: "css" };
 
 /** @typedef {import("./FluxInputElement.mjs").FluxInputElement} FluxInputElement */
 /** @typedef {import("./Input.mjs").Input} Input */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
-
-const root_css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElementRoot.css`
-);
-
-const css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxFormElement.css`
-);
 
 export const FLUX_FORM_ELEMENT_EVENT_CHANGE = "flux-form-change";
 
