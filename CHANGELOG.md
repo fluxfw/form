@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-02-19-2
+
+Changes:
+
+- Rename `autoFocus` to `auto-focus`
+
 ## v2024-02-19-1
 
 Changes:

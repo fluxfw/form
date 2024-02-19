@@ -186,7 +186,7 @@ export class FluxInputElement extends HTMLElement {
 
         return {
             "additional-validation-type": this.#additional_validation_type,
-            autoFocus: this.#auto_focus,
+            "auto-focus": this.#auto_focus,
             disabled: this.#input_element.disabled,
             entries: structuredClone(this.#entries),
             "input-mode": this.#input_element.inputMode ?? "",
@@ -287,7 +287,7 @@ export class FluxInputElement extends HTMLElement {
 
         this.#additional_validation_type = input["additional-validation-type"] ?? "";
 
-        this.#auto_focus = input.autoFocus ?? false;
+        this.#auto_focus = input["auto-focus"] ?? false;
 
         const input_mode = input["input-mode"] ?? "";
         if (input_mode !== "" && "inputMode" in this.#input_element) {
