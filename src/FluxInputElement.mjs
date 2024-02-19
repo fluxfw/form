@@ -26,6 +26,10 @@ export class FluxInputElement extends HTMLElement {
      */
     #additional_validation_type;
     /**
+     * @type {boolean}
+     */
+    #auto_focus;
+    /**
      * @type {HTMLDivElement | null}
      */
     #container_element = null;
@@ -133,7 +137,17 @@ export class FluxInputElement extends HTMLElement {
 
         this.#style_sheet_manager = style_sheet_manager;
         this.#additional_validation_types = new Map();
+        this.#auto_focus = false;
         this.#has_custom_validation_message = false;
+    }
+
+    /**
+     * @returns {void}
+     */
+    connectedCallback() {
+        if (this.#auto_focus) {
+            this.#input_element.focus();
+        }
     }
 
     /**
@@ -172,6 +186,7 @@ export class FluxInputElement extends HTMLElement {
 
         return {
             "additional-validation-type": this.#additional_validation_type,
+            autoFocus: this.#auto_focus,
             disabled: this.#input_element.disabled,
             entries: structuredClone(this.#entries),
             "input-mode": this.#input_element.inputMode ?? "",
@@ -271,6 +286,8 @@ export class FluxInputElement extends HTMLElement {
         this.#input_element = document.createElement(this.#type === INPUT_TYPE_SELECT || this.#type === INPUT_TYPE_TEXTAREA ? this.#type : "input");
 
         this.#additional_validation_type = input["additional-validation-type"] ?? "";
+
+        this.#auto_focus = input.autoFocus ?? false;
 
         const input_mode = input["input-mode"] ?? "";
         if (input_mode !== "" && "inputMode" in this.#input_element) {
