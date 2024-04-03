@@ -157,7 +157,7 @@ export class FluxInputElement extends HTMLElement {
      */
     async addAdditionalValidationType(type, validate_value) {
         if (this.#additional_validation_types.has(type)) {
-            throw new Error(`Additional validation type ${type} already exists`);
+            throw new Error(`Additional validation type ${type} already exists!`);
         }
 
         this.#additional_validation_types.set(type, validate_value);
@@ -168,7 +168,7 @@ export class FluxInputElement extends HTMLElement {
      */
     get disabled() {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         return this.#input_element.disabled;
@@ -179,7 +179,7 @@ export class FluxInputElement extends HTMLElement {
      */
     get input() {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         const options = Array.from(this.#input_element.querySelectorAll("option"));
@@ -221,7 +221,7 @@ export class FluxInputElement extends HTMLElement {
      */
     get name() {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         return this.#input_element.name;
@@ -233,7 +233,7 @@ export class FluxInputElement extends HTMLElement {
      */
     set name(name) {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         this.#input_element.name = name;
@@ -245,7 +245,7 @@ export class FluxInputElement extends HTMLElement {
      */
     async setDisabled(disabled) {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         this.#input_element.disabled = disabled;
@@ -527,7 +527,7 @@ export class FluxInputElement extends HTMLElement {
      */
     async setValue(value) {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         switch (true) {
@@ -592,7 +592,7 @@ export class FluxInputElement extends HTMLElement {
      */
     async validate(report = null) {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         this.#removeCustomValidationMessage();
@@ -624,7 +624,7 @@ export class FluxInputElement extends HTMLElement {
             const validate_value = this.#additional_validation_types.get(this.#additional_validation_type) ?? null;
 
             if (validate_value === null) {
-                throw new Error(`Unknown additional validation type ${this.#additional_validation_type}`);
+                throw new Error(`Unknown additional validation type ${this.#additional_validation_type}!`);
             }
 
             const validate_value_result = await validate_value(
@@ -650,7 +650,7 @@ export class FluxInputElement extends HTMLElement {
      */
     get value() {
         if (this.#input_element === null) {
-            throw new Error("Missing input");
+            throw new Error("Missing input!");
         }
 
         switch (true) {

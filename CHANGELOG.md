@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-04-03-1
+
+Changes:
+
+- Add `!` to error logs
+
 ## v2024-02-19-2
 
 Changes:

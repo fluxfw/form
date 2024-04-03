@@ -160,7 +160,7 @@ export class FluxFilterFormElement extends HTMLElement {
      */
     async addAdditionalValidationType(type, validate_value) {
         if (this.#additional_validation_types.has(type)) {
-            throw new Error(`Additional validation type ${type} already exists`);
+            throw new Error(`Additional validation type ${type} already exists!`);
         }
 
         this.#additional_validation_types.set(type, validate_value);
