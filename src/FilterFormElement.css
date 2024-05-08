@@ -1,0 +1,91 @@
+:host {
+    background-color: var(--filter-form-background-color);
+    color: var(--filter-form-foreground-color);
+    display: block;
+    height: auto;
+    max-width: 100%;
+    width: 100%;
+}
+
+form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    height: auto;
+    width: 100%;
+}
+
+.container {
+    align-items: start;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 5px;
+    height: auto;
+    width: 30%;
+}
+
+button, [data-add_input] {
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--filter-form-button-background-color);
+    border: none;
+    border-radius: 0;
+    color: var(--filter-form-button-foreground-color);
+    cursor: default;
+    flex-grow: 0;
+	flex-shrink: 0;
+    height: 22px;
+    min-width: 22px;
+    outline: none;
+    width: 22px;
+}
+
+[data-add_input] {
+    width: 30px;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+:is(button, [data-add_input]):not(:disabled):focus-visible {
+    outline: 2px solid var(--filter-form-button-focus-outline-color);
+    outline-offset: -2px;
+}
+
+:is(button, [data-add_input]):disabled {
+    opacity: 0.6;
+}
+
+button:not(:disabled):active {
+    background-color: var(--filter-form-active-button-background-color);
+    color: var(--filter-form-active-button-foreground-color);
+}
+
+@media (hover: hover) {
+    button:not(:disabled):hover {
+        background-color: var(--filter-form-active-button-background-color);
+        color: var(--filter-form-active-button-foreground-color);
+    }
+}
+
+[data-input] {
+    --input-active-button-background-color: var(--filter-form-active-button-background-color);
+    --input-active-button-foreground-color: var(--filter-form-active-button-foreground-color);
+    --input-background-color: var(--filter-form-background-color);
+    --input-button-background-color: var(--filter-form-button-background-color);
+    --input-button-focus-outline-color: var(--filter-form-button-focus-outline-color);
+    --input-button-foreground-color: var(--filter-form-button-foreground-color);
+    --input-foreground-color: var(--filter-form-foreground-color);
+    --input-input-background-color: var(--filter-form-input-background-color);
+    --input-input-border-color: var(--filter-form-input-border-color);
+    --input-input-focus-outline-color: var(--filter-form-input-focus-outline-color);
+    --input-input-foreground-color: var(--filter-form-input-foreground-color);
+    --input-input-invalid-border-color: var(--filter-form-input-invalid-border-color);
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 0;
+}

@@ -1,6 +1,6 @@
 :host {
-    background-color: var(--flux-input-background-color);
-    color: var(--flux-input-foreground-color);
+    background-color: var(--input-background-color);
+    color: var(--input-foreground-color);
     display: block;
     height: auto;
     max-width: 100%;
@@ -16,11 +16,11 @@
 }
 
 input, select, textarea {
-    background-color: var(--flux-input-input-background-color);
-    border: 1px solid var(--flux-input-input-border-color);
+    background-color: var(--input-input-background-color);
+    border: 1px solid var(--input-input-border-color);
     border-radius: 0;
     box-sizing: content-box;
-    color: var(--flux-input-input-foreground-color);
+    color: var(--input-input-foreground-color);
     cursor: default;
     font-family: unset;
     font-size: 16px;
@@ -69,15 +69,15 @@ textarea {
 }
 
 .label:empty + :is(input, select, textarea):not(:disabled):invalid {
-    border-bottom-color: var(--flux-input-input-invalid-border-color);
+    border-bottom-color: var(--input-input-invalid-border-color);
 }
 
 .label:not(:empty) + :is(input, select, textarea):not(:disabled):invalid {
-    border-color: var(--flux-input-input-invalid-border-color);
+    border-color: var(--input-input-invalid-border-color);
 }
 
 :is(input, select, textarea):not(:disabled):not([readonly]):focus-visible {
-    outline: 2px solid var(--flux-input-input-focus-outline-color);
+    outline: 2px solid var(--input-input-focus-outline-color);
     outline-offset: -2px;
 }
 
@@ -86,26 +86,26 @@ textarea {
 }
 
 [data-form] {
-    --flux-form-active-button-background-color: var(--flux-input-active-button-background-color);
-    --flux-form-active-button-foreground-color: var(--flux-input-active-button-foreground-color);
-    --flux-form-background-color: var(--flux-input-background-color);
-    --flux-form-button-background-color: var(--flux-input-button-background-color);
-    --flux-form-button-focus-outline-color: var(--flux-input-button-focus-outline-color);
-    --flux-form-button-foreground-color: var(--flux-input-button-foreground-color);
-    --flux-form-foreground-color: var(--flux-input-foreground-color);
-    --flux-form-input-background-color: var(--flux-input-input-background-color);
-    --flux-form-input-border-color: var(--flux-input-input-border-color);
-    --flux-form-input-focus-outline-color: var(--flux-input-input-focus-outline-color);
-    --flux-form-input-foreground-color: var(--flux-input-input-foreground-color);
-    --flux-form-input-invalid-border-color: var(--flux-input-input-invalid-border-color);
+    --form-active-button-background-color: var(--input-active-button-background-color);
+    --form-active-button-foreground-color: var(--input-active-button-foreground-color);
+    --form-background-color: var(--input-background-color);
+    --form-button-background-color: var(--input-button-background-color);
+    --form-button-focus-outline-color: var(--input-button-focus-outline-color);
+    --form-button-foreground-color: var(--input-button-foreground-color);
+    --form-foreground-color: var(--input-foreground-color);
+    --form-input-background-color: var(--input-input-background-color);
+    --form-input-border-color: var(--input-input-border-color);
+    --form-input-focus-outline-color: var(--input-input-focus-outline-color);
+    --form-input-foreground-color: var(--input-input-foreground-color);
+    --form-input-invalid-border-color: var(--input-input-invalid-border-color);
 }
 
 button {
     -webkit-tap-highlight-color: transparent;
-    background-color: var(--flux-input-button-background-color);
+    background-color: var(--input-button-background-color);
     border: none;
     border-radius: 0;
-    color: var(--flux-input-button-foreground-color);
+    color: var(--input-button-foreground-color);
     cursor: default;
     font-family: unset;
     height: 22px;
@@ -118,7 +118,7 @@ button:not(:disabled) {
 }
 
 button:not(:disabled):focus-visible {
-    outline: 2px solid var(--flux-input-button-focus-outline-color);
+    outline: 2px solid var(--input-button-focus-outline-color);
     outline-offset: -2px;
 }
 
@@ -127,14 +127,14 @@ button:disabled {
 }
 
 button:not(:disabled):active {
-    background-color: var(--flux-input-active-button-background-color);
-    color: var(--flux-input-active-button-foreground-color);
+    background-color: var(--input-active-button-background-color);
+    color: var(--input-active-button-foreground-color);
 }
 
 @media (hover: hover) {
     button:not(:disabled):hover {
-        background-color: var(--flux-input-active-button-background-color);
-        color: var(--flux-input-active-button-foreground-color);
+        background-color: var(--input-active-button-background-color);
+        color: var(--input-active-button-foreground-color);
     }
 }
 

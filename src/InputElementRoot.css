@@ -1,0 +1,14 @@
+:root, :host {
+    --input-active-button-background-color: #000000;
+    --input-active-button-foreground-color: #ffffff;
+    --input-background-color: #ffffff;
+    --input-button-background-color: #000000;
+    --input-button-focus-outline-color: #000000;
+    --input-button-foreground-color: #ffffff;
+    --input-foreground-color: #000000;
+    --input-input-background-color: #ffffff;
+    --input-input-border-color: #000000;
+    --input-input-focus-outline-color: #000000;
+    --input-input-foreground-color: #000000;
+    --input-input-invalid-border-color: #ff0000;
+}

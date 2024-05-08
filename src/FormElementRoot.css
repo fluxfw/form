@@ -1,0 +1,14 @@
+:root, :host {
+    --form-active-button-background-color: #000000;
+    --form-active-button-foreground-color: #ffffff;
+    --form-background-color: #ffffff;
+    --form-button-background-color: #000000;
+    --form-button-focus-outline-color: #000000;
+    --form-button-foreground-color: #ffffff;
+    --form-foreground-color: #000000;
+    --form-input-background-color: #ffffff;
+    --form-input-border-color: #000000;
+    --form-input-focus-outline-color: #000000;
+    --form-input-foreground-color: #000000;
+    --form-input-invalid-border-color: #ff0000;
+}

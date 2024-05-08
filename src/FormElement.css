@@ -1,0 +1,31 @@
+:host {
+    background-color: var(--form-background-color);
+    color: var(--form-foreground-color);
+    display: block;
+    height: auto;
+    max-width: 100%;
+    width: 100%;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: auto;
+    width: 100%;
+}
+
+[data-input] {
+    --input-active-button-background-color: var(--form-active-button-background-color);
+    --input-active-button-foreground-color: var(--form-active-button-foreground-color);
+    --input-background-color: var(--form-background-color);
+    --input-button-background-color: var(--form-button-background-color);
+    --input-button-focus-outline-color: var(--form-button-focus-outline-color);
+    --input-button-foreground-color: var(--form-button-foreground-color);
+    --input-foreground-color: var(--form-foreground-color);
+    --input-input-background-color: var(--form-input-background-color);
+    --input-input-border-color: var(--form-input-border-color);
+    --input-input-focus-outline-color: var(--form-input-focus-outline-color);
+    --input-input-foreground-color: var(--form-input-foreground-color);
+    --input-input-invalid-border-color: var(--form-input-invalid-border-color);
+}
