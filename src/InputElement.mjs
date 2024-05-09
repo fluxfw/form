@@ -934,6 +934,6 @@ export class InputElement extends HTMLElement {
     }
 }
 
-export const INPUT_ELEMENT_TAG_NAME = "input";
+export const INPUT_ELEMENT_TAG_NAME = "input-input";
 
 customElements.define(INPUT_ELEMENT_TAG_NAME, InputElement);

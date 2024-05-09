@@ -256,6 +256,6 @@ export class FormElement extends HTMLElement {
     }
 }
 
-export const FORM_ELEMENT_TAG_NAME = "form";
+export const FORM_ELEMENT_TAG_NAME = "form-form";
 
 customElements.define(FORM_ELEMENT_TAG_NAME, FormElement);
