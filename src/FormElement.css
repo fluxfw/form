@@ -2,6 +2,7 @@
     background-color: var(--form-background-color);
     color: var(--form-foreground-color);
     display: block;
+    font-size: var(--form-font-size);
     height: auto;
     max-width: 100%;
     width: 100%;
@@ -22,10 +23,16 @@ form {
     --input-button-background-color: var(--form-button-background-color);
     --input-button-focus-outline-color: var(--form-button-focus-outline-color);
     --input-button-foreground-color: var(--form-button-foreground-color);
+    --input-font-size: var(--form-font-size);
     --input-foreground-color: var(--form-foreground-color);
     --input-input-background-color: var(--form-input-background-color);
     --input-input-border-color: var(--form-input-border-color);
     --input-input-focus-outline-color: var(--form-input-focus-outline-color);
+    --input-input-font-size: var(--form-input-font-size);
     --input-input-foreground-color: var(--form-input-foreground-color);
     --input-input-invalid-border-color: var(--form-input-invalid-border-color);
+    --input-label-background-color: var(--form-label-background-color);
+    --input-label-font-size: var(--form-label-font-size);
+    --input-label-font-weight: var(--form-label-font-weight);
+    --input-label-foreground-color: var(--form-label-foreground-color);
 }

@@ -5,10 +5,16 @@
     --form-button-background-color: #000000;
     --form-button-focus-outline-color: #000000;
     --form-button-foreground-color: #ffffff;
+    --form-font-size: 16px;
     --form-foreground-color: #000000;
-    --form-input-background-color: #ffffff;
+    --form-input-background-color: var(--form-background-color);
     --form-input-border-color: #000000;
     --form-input-focus-outline-color: #000000;
-    --form-input-foreground-color: #000000;
+    --form-input-font-size: var(--form-font-size);
+    --form-input-foreground-color: var(--form-foreground-color);
     --form-input-invalid-border-color: #ff0000;
+    --form-label-background-color: var(--form-background-color);
+    --form-label-font-size: var(--form-font-size);
+    --form-label-font-weight: bold;
+    --form-label-foreground-color: var(--form-foreground-color);
 }

@@ -5,10 +5,16 @@
     --input-button-background-color: #000000;
     --input-button-focus-outline-color: #000000;
     --input-button-foreground-color: #ffffff;
+    --input-font-size: 16px;
     --input-foreground-color: #000000;
-    --input-input-background-color: #ffffff;
+    --input-input-background-color: var(--input-background-color);
     --input-input-border-color: #000000;
     --input-input-focus-outline-color: #000000;
-    --input-input-foreground-color: #000000;
+    --input-input-font-size: var(--input-font-size);
+    --input-input-foreground-color: var(--input-foreground-color);
     --input-input-invalid-border-color: #ff0000;
+    --input-label-background-color: var(--input-background-color);
+    --input-label-font-size: var(--input-font-size);
+    --input-label-font-weight: bold;
+    --input-label-foreground-color: var(--input-foreground-color);
 }

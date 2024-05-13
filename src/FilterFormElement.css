@@ -1,6 +1,7 @@
 :host {
     background-color: var(--filter-form-background-color);
     color: var(--filter-form-foreground-color);
+    font-size: var(--filter-form-font-size);
     display: block;
     height: auto;
     max-width: 100%;
@@ -36,7 +37,7 @@ button, [data-add_input] {
     color: var(--filter-form-button-foreground-color);
     cursor: default;
     flex-grow: 0;
-	flex-shrink: 0;
+    flex-shrink: 0;
     height: 22px;
     min-width: 22px;
     outline: none;
@@ -79,12 +80,18 @@ button:not(:disabled):active {
     --input-button-background-color: var(--filter-form-button-background-color);
     --input-button-focus-outline-color: var(--filter-form-button-focus-outline-color);
     --input-button-foreground-color: var(--filter-form-button-foreground-color);
+    --input-font-size: var(--filter-form-font-size);
     --input-foreground-color: var(--filter-form-foreground-color);
     --input-input-background-color: var(--filter-form-input-background-color);
     --input-input-border-color: var(--filter-form-input-border-color);
     --input-input-focus-outline-color: var(--filter-form-input-focus-outline-color);
+    --input-input-font-size: var(--filter-form-input-font-size);
     --input-input-foreground-color: var(--filter-form-input-foreground-color);
     --input-input-invalid-border-color: var(--filter-form-input-invalid-border-color);
+    --input-label-background-color: var(--filter-form-label-background-color);
+    --input-label-font-size: var(--filter-form-label-font-size);
+    --input-label-font-weight: var(--filter-form-label-font-weight);
+    --input-label-foreground-color: var(--filter-form-label-foreground-color);
     flex-grow: 1;
     flex-shrink: 1;
     width: 0;

@@ -2,14 +2,17 @@
     background-color: var(--input-background-color);
     color: var(--input-foreground-color);
     display: block;
+    font-size: var(--input-font-size);
     height: auto;
     max-width: 100%;
     width: 100%;
 }
 
 .label {
-    font-size: 16px;
-    font-weight: bold;
+    background-color: var(--input-label-background-color);
+    color: var(--input-label-foreground-color);
+    font-size: var(--input-label-font-size);
+    font-weight: var(--input-label-font-weight);
     height: auto;
     margin: 2px 0;
     width: 100%;
@@ -23,7 +26,7 @@ input, select, textarea {
     color: var(--input-input-foreground-color);
     cursor: default;
     font-family: unset;
-    font-size: 16px;
+    font-size: var(--input-input-font-size);
     height: 25px;
     outline: none;
     padding: 2px 5px;
@@ -159,7 +162,7 @@ button:not(:disabled):active {
 
 .container button {
     flex-grow: 0;
-	flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .container :is([data-form], input:not([type="checkbox"]), select, textarea) {

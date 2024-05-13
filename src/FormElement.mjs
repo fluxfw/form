@@ -44,10 +44,8 @@ export class FormElement extends HTMLElement {
                     [`${FORM_ELEMENT_VARIABLE_PREFIX}button-focus-outline-color`]: "foreground-color",
                     [`${FORM_ELEMENT_VARIABLE_PREFIX}button-foreground-color`]: "accent-foreground-color",
                     [`${FORM_ELEMENT_VARIABLE_PREFIX}foreground-color`]: "foreground-color",
-                    [`${FORM_ELEMENT_VARIABLE_PREFIX}input-background-color`]: "background-color",
                     [`${FORM_ELEMENT_VARIABLE_PREFIX}input-border-color`]: "foreground-color",
-                    [`${FORM_ELEMENT_VARIABLE_PREFIX}input-focus-outline-color`]: "foreground-color",
-                    [`${FORM_ELEMENT_VARIABLE_PREFIX}input-foreground-color`]: "foreground-color"
+                    [`${FORM_ELEMENT_VARIABLE_PREFIX}input-focus-outline-color`]: "foreground-color"
                 },
                 true
             );

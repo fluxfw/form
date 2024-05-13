@@ -75,10 +75,8 @@ export class InputElement extends HTMLElement {
                     [`${INPUT_ELEMENT_VARIABLE_PREFIX}button-focus-outline-color`]: "foreground-color",
                     [`${INPUT_ELEMENT_VARIABLE_PREFIX}button-foreground-color`]: "accent-foreground-color",
                     [`${INPUT_ELEMENT_VARIABLE_PREFIX}foreground-color`]: "foreground-color",
-                    [`${INPUT_ELEMENT_VARIABLE_PREFIX}input-background-color`]: "background-color",
                     [`${INPUT_ELEMENT_VARIABLE_PREFIX}input-border-color`]: "foreground-color",
-                    [`${INPUT_ELEMENT_VARIABLE_PREFIX}input-focus-outline-color`]: "foreground-color",
-                    [`${INPUT_ELEMENT_VARIABLE_PREFIX}input-foreground-color`]: "foreground-color"
+                    [`${INPUT_ELEMENT_VARIABLE_PREFIX}input-focus-outline-color`]: "foreground-color"
                 },
                 true
             );
