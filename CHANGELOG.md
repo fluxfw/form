@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2024-05-14-1
+
+Changes:
+
+- Font size/weight variable
+- Subtitle variables
+
 ## v2024-05-13-1
 
 Changes:
