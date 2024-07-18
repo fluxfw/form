@@ -17,7 +17,7 @@ export class FormElement extends HTMLElement {
     /**
      * @type {Map<string, validateValue>}
      */
-    #additional_validation_types;
+    #additional_validation_types = new Map();
     /**
      * @type {ShadowRoot}
      */
@@ -97,7 +97,6 @@ export class FormElement extends HTMLElement {
         super();
 
         this.#style_sheet_manager = style_sheet_manager;
-        this.#additional_validation_types = new Map();
     }
 
     /**

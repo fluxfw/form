@@ -17,11 +17,11 @@ export class FilterFormElement extends HTMLElement {
     /**
      * @type {Map<string, validateValue>}
      */
-    #additional_validation_types;
+    #additional_validation_types = new Map();
     /**
      * @type {Input[]}
      */
-    #inputs;
+    #inputs = [];
     /**
      * @type {ShadowRoot}
      */
@@ -147,8 +147,6 @@ export class FilterFormElement extends HTMLElement {
         super();
 
         this.#style_sheet_manager = style_sheet_manager;
-        this.#additional_validation_types = new Map();
-        this.#inputs = [];
     }
 
     /**

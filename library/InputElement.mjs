@@ -20,7 +20,7 @@ export class InputElement extends HTMLElement {
     /**
      * @type {Map<string, validateValue>}
      */
-    #additional_validation_types;
+    #additional_validation_types = new Map();
     /**
      * @type {string}
      */
@@ -28,7 +28,7 @@ export class InputElement extends HTMLElement {
     /**
      * @type {boolean}
      */
-    #auto_focus;
+    #auto_focus = false;
     /**
      * @type {HTMLDivElement | null}
      */
@@ -40,7 +40,7 @@ export class InputElement extends HTMLElement {
     /**
      * @type {boolean}
      */
-    #has_custom_validation_message;
+    #has_custom_validation_message = false;
     /**
      * @type {_InputElement | null}
      */
@@ -134,9 +134,6 @@ export class InputElement extends HTMLElement {
         super();
 
         this.#style_sheet_manager = style_sheet_manager;
-        this.#additional_validation_types = new Map();
-        this.#auto_focus = false;
-        this.#has_custom_validation_message = false;
     }
 
     /**
