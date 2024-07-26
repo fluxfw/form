@@ -57,7 +57,6 @@ export async function validateRegularExpressionValue(value = null) {
             value
         );
     } catch (error) {
-        //console.error(error);
         return "Invalid regular expression!";
     }
 
