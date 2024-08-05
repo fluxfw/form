@@ -1,15 +1,12 @@
 import css from "./FilterFormElement.css" with { type: "css" };
 import root_css from "./FilterFormElementRoot.css" with { type: "css" };
 
+/** @typedef {import("./FilterFormElementWithEvents.mjs").FilterFormElementWithEvents} FilterFormElementWithEvents */
 /** @typedef {import("./Input.mjs").Input} Input */
-/** @typedef {import("./InputElement.mjs").InputElement} InputElement */
+/** @typedef {import("./InputElementWithEvents.mjs").InputElementWithEvents} InputElementWithEvents */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
-
-export const FILTER_FORM_ELEMENT_EVENT_CHANGE = "filter-form-change";
-
-export const FILTER_FORM_ELEMENT_EVENT_INPUT = "filter-form-input";
 
 export const FILTER_FORM_ELEMENT_VARIABLE_PREFIX = "--filter-form-";
 
@@ -34,7 +31,7 @@ export class FilterFormElement extends HTMLElement {
     /**
      * @param {Input[] | null} inputs
      * @param {StyleSheetManager | null} style_sheet_manager
-     * @returns {Promise<FilterFormElement>}
+     * @returns {Promise<FilterFormElementWithEvents>}
      */
     static async new(inputs = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
@@ -79,8 +76,8 @@ export class FilterFormElement extends HTMLElement {
         filter_form_element.#shadow.adoptedStyleSheets.push(css);
 
         const form_element = document.createElement("form");
-        form_element.addEventListener("submit", e => {
-            e.preventDefault();
+        form_element.addEventListener("submit", event => {
+            event.preventDefault();
         });
 
         const add_input_container_element = document.createElement("div");
@@ -112,17 +109,17 @@ export class FilterFormElement extends HTMLElement {
                 return;
             }
 
-            filter_form_element.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_INPUT, {
-                detail: {
+            filter_form_element.dispatchEvent(new CustomEvent("input-input", {
+                detail: Object.freeze({
                     name: input_element.name,
                     value: input_element.value
-                }
+                })
             }));
-            filter_form_element.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_CHANGE, {
-                detail: {
+            filter_form_element.dispatchEvent(new CustomEvent("input-change", {
+                detail: Object.freeze({
                     name: input_element.name,
                     value: input_element.value
-                }
+                })
             }));
         });
         add_input_container_element.append(add_input_element);
@@ -285,7 +282,7 @@ export class FilterFormElement extends HTMLElement {
     /**
      * @param {Input} input
      * @param {boolean | null} update_add_inputs
-     * @returns {Promise<InputElement | null>}
+     * @returns {Promise<InputElementWithEvents | null>}
      */
     async #addInput(input, update_add_inputs = null) {
         const index = this.#inputs.indexOf(input);
@@ -307,13 +304,7 @@ export class FilterFormElement extends HTMLElement {
         const container_element = document.createElement("div");
         container_element.classList.add("container");
 
-        const {
-            INPUT_ELEMENT_EVENT_CHANGE,
-            INPUT_ELEMENT_EVENT_INPUT,
-            InputElement
-        } = await import("./InputElement.mjs");
-
-        const input_element = await InputElement.new(
+        const input_element = await (await import("./InputElement.mjs")).InputElement.new(
             input,
             this.#style_sheet_manager
         );
@@ -323,20 +314,20 @@ export class FilterFormElement extends HTMLElement {
             );
         }
         input_element.dataset.input = index;
-        input_element.addEventListener(INPUT_ELEMENT_EVENT_CHANGE, e => {
-            this.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_CHANGE, {
-                detail: {
+        input_element.addEventListener("input-change", event => {
+            this.dispatchEvent(new CustomEvent("input-change", {
+                detail: Object.freeze({
                     name: input_element.name,
-                    value: e.detail.value
-                }
+                    value: event.detail.value
+                })
             }));
         });
-        input_element.addEventListener(INPUT_ELEMENT_EVENT_INPUT, e => {
-            this.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_INPUT, {
-                detail: {
+        input_element.addEventListener("input-input", event => {
+            this.dispatchEvent(new CustomEvent("input-input", {
+                detail: Object.freeze({
                     name: input_element.name,
-                    value: e.detail.value
-                }
+                    value: event.detail.value
+                })
             }));
         });
 
@@ -359,15 +350,15 @@ export class FilterFormElement extends HTMLElement {
                 input
             );
 
-            this.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_INPUT, {
-                detail: {
+            this.dispatchEvent(new CustomEvent("input-input", {
+                detail: Object.freeze({
                     name: input_element.name
-                }
+                })
             }));
-            this.dispatchEvent(new CustomEvent(FILTER_FORM_ELEMENT_EVENT_CHANGE, {
-                detail: {
+            this.dispatchEvent(new CustomEvent("input-change", {
+                detail: Object.freeze({
                     name: input_element.name
-                }
+                })
             }));
         });
         container_element.append(remove_button_element);
@@ -392,14 +383,14 @@ export class FilterFormElement extends HTMLElement {
 
     /**
      * @param {number} index
-     * @returns {InputElement | null}
+     * @returns {InputElementWithEvents | null}
      */
     #getInputElementByIndex(index) {
         return this.#input_elements.find(input_element => input_element.dataset.input === `${index}`) ?? null;
     }
 
     /**
-     * @returns {InputElement[]}
+     * @returns {InputElementWithEvents[]}
      */
     get #input_elements() {
         return Array.from(this.#form_element.querySelectorAll("[data-input]"));

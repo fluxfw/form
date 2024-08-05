@@ -1,18 +1,15 @@
-import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 import css from "./InputElement.css" with { type: "css" };
+import { DEFAULT_ADDITIONAL_VALIDATION_TYPES } from "./DEFAULT_ADDITIONAL_VALIDATION_TYPES.mjs";
 import root_css from "./InputElementRoot.css" with { type: "css" };
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA, INPUT_TYPE_TIME } from "./INPUT_TYPE.mjs";
 
-/** @typedef {import("./_InputElement.mjs")._InputElement} _InputElement */
 /** @typedef {import("./Input.mjs").Input} Input */
+/** @typedef {import("./_InputElement.mjs")._InputElement} _InputElement */
+/** @typedef {import("./InputElementWithEvents.mjs").InputElementWithEvents} InputElementWithEvents */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./Value.mjs").Value} Value */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
-
-export const INPUT_ELEMENT_EVENT_CHANGE = "input-change";
-
-export const INPUT_ELEMENT_EVENT_INPUT = "input-input";
 
 export const INPUT_ELEMENT_VARIABLE_PREFIX = "--input-";
 
@@ -61,7 +58,7 @@ export class InputElement extends HTMLElement {
     /**
      * @param {Input | null} input
      * @param {StyleSheetManager | null} style_sheet_manager
-     * @returns {Promise<InputElement>}
+     * @returns {Promise<InputElementWithEvents>}
      */
     static async new(input = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
@@ -396,15 +393,15 @@ export class InputElement extends HTMLElement {
                     const {
                         value
                     } = this;
-                    this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                        detail: {
+                    this.dispatchEvent(new CustomEvent("input-input", {
+                        detail: Object.freeze({
                             value
-                        }
+                        })
                     }));
-                    this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                        detail: {
+                    this.dispatchEvent(new CustomEvent("input-change", {
+                        detail: Object.freeze({
                             value
-                        }
+                        })
                     }));
                 });
                 this.#container_element.append(add_entry_button_element);
@@ -415,10 +412,10 @@ export class InputElement extends HTMLElement {
             }
 
             this.#input_element.addEventListener("change", () => {
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-change", {
+                    detail: Object.freeze({
                         value: this.value
-                    }
+                    })
                 }));
             });
             this.#input_element.addEventListener("input", () => {
@@ -426,10 +423,10 @@ export class InputElement extends HTMLElement {
 
                 this.#updateClearButton();
 
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-input", {
+                    detail: Object.freeze({
                         value: this.value
-                    }
+                    })
                 }));
             });
         }
@@ -698,15 +695,15 @@ export class InputElement extends HTMLElement {
                 const {
                     value
                 } = this;
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-input", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-change", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
             });
             entry_element.append(move_entry_up_button_element);
@@ -723,15 +720,15 @@ export class InputElement extends HTMLElement {
                 const {
                     value
                 } = this;
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-input", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-change", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
             });
             entry_element.append(move_entry_down_button_element);
@@ -742,8 +739,8 @@ export class InputElement extends HTMLElement {
             remove_button_element.dataset.remove_entry_button = true;
             remove_button_element.innerText = "X";
             remove_button_element.type = "button";
-            remove_button_element.addEventListener("click", async e => {
-                e.preventDefault();
+            remove_button_element.addEventListener("click", async event => {
+                event.preventDefault();
 
                 entry_element.remove();
 
@@ -752,43 +749,37 @@ export class InputElement extends HTMLElement {
                 const {
                     value
                 } = this;
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-input", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
-                this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                    detail: {
+                this.dispatchEvent(new CustomEvent("input-change", {
+                    detail: Object.freeze({
                         value
-                    }
+                    })
                 }));
             });
             entry_element.append(remove_button_element);
         }
 
-        const {
-            FORM_ELEMENT_EVENT_CHANGE,
-            FORM_ELEMENT_EVENT_INPUT,
-            FormElement
-        } = await import("./FormElement.mjs");
-
-        const form_element = await FormElement.new(
+        const form_element = await (await import("./FormElement.mjs")).FormElement.new(
             this.#entries,
             this.#style_sheet_manager
         );
         form_element.dataset.form = true;
-        form_element.addEventListener(FORM_ELEMENT_EVENT_CHANGE, () => {
-            this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_CHANGE, {
-                detail: {
+        form_element.addEventListener("input-change", () => {
+            this.dispatchEvent(new CustomEvent("input-change", {
+                detail: Object.freeze({
                     value: this.value
-                }
+                })
             }));
         });
-        form_element.addEventListener(FORM_ELEMENT_EVENT_INPUT, () => {
-            this.dispatchEvent(new CustomEvent(INPUT_ELEMENT_EVENT_INPUT, {
-                detail: {
+        form_element.addEventListener("input-input", () => {
+            this.dispatchEvent(new CustomEvent("input-input", {
+                detail: Object.freeze({
                     value: this.value
-                }
+                })
             }));
         });
         entry_element.append(form_element);

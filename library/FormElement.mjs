@@ -1,15 +1,12 @@
 import css from "./FormElement.css" with { type: "css" };
 import root_css from "./FormElementRoot.css" with { type: "css" };
 
+/** @typedef {import("./FormElementWithEvents.mjs").FormElementWithEvents} FormElementWithEvents */
 /** @typedef {import("./Input.mjs").Input} Input */
-/** @typedef {import("./InputElement.mjs").InputElement} InputElement */
+/** @typedef {import("./InputElementWithEvents.mjs").InputElementWithEvents} InputElementWithEvents */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("./validateValue.mjs").validateValue} validateValue */
-
-export const FORM_ELEMENT_EVENT_CHANGE = "form-change";
-
-export const FORM_ELEMENT_EVENT_INPUT = "form-input";
 
 export const FORM_ELEMENT_VARIABLE_PREFIX = "--form-";
 
@@ -30,7 +27,7 @@ export class FormElement extends HTMLElement {
     /**
      * @param {Input[] | null} inputs
      * @param {StyleSheetManager | null} style_sheet_manager
-     * @returns {Promise<FormElement>}
+     * @returns {Promise<FormElementWithEvents>}
      */
     static async new(inputs = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
@@ -75,8 +72,8 @@ export class FormElement extends HTMLElement {
         form_element.#shadow.adoptedStyleSheets.push(css);
 
         const _form_element = document.createElement("form");
-        _form_element.addEventListener("submit", e => {
-            e.preventDefault();
+        _form_element.addEventListener("submit", event => {
+            event.preventDefault();
         });
         form_element.#shadow.append(_form_element);
 
@@ -197,31 +194,25 @@ export class FormElement extends HTMLElement {
      * @returns {Promise<void>}
      */
     async #addInput(input) {
-        const {
-            INPUT_ELEMENT_EVENT_CHANGE,
-            INPUT_ELEMENT_EVENT_INPUT,
-            InputElement
-        } = await import("./InputElement.mjs");
-
-        const input_element = await InputElement.new(
+        const input_element = await (await import("./InputElement.mjs")).InputElement.new(
             input,
             this.#style_sheet_manager
         );
         input_element.dataset.input = true;
-        input_element.addEventListener(INPUT_ELEMENT_EVENT_CHANGE, e => {
-            this.dispatchEvent(new CustomEvent(FORM_ELEMENT_EVENT_CHANGE, {
-                detail: {
+        input_element.addEventListener("input-change", event => {
+            this.dispatchEvent(new CustomEvent("input-change", {
+                detail: Object.freeze({
                     name: input_element.name,
-                    value: e.detail.value
-                }
+                    value: event.detail.value
+                })
             }));
         });
-        input_element.addEventListener(INPUT_ELEMENT_EVENT_INPUT, e => {
-            this.dispatchEvent(new CustomEvent(FORM_ELEMENT_EVENT_INPUT, {
-                detail: {
+        input_element.addEventListener("input-input", event => {
+            this.dispatchEvent(new CustomEvent("input-input", {
+                detail: Object.freeze({
                     name: input_element.name,
-                    value: e.detail.value
-                }
+                    value: event.detail.value
+                })
             }));
         });
 
@@ -246,7 +237,7 @@ export class FormElement extends HTMLElement {
     }
 
     /**
-     * @returns {InputElement[]}
+     * @returns {InputElementWithEvents[]}
      */
     get #input_elements() {
         return Array.from(this.#form_element.querySelectorAll("[data-input]"));
