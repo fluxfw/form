@@ -61,6 +61,9 @@ export class FilterFormElement extends HTMLElement {
             }
         }
 
+        /**
+         * @type {FilterFormElementWithEvents}
+         */
         const filter_form_element = new this(
             style_sheet_manager
         );

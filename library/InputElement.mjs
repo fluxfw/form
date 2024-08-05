@@ -88,6 +88,9 @@ export class InputElement extends HTMLElement {
             }
         }
 
+        /**
+         * @type {InputElementWithEvents}
+         */
         const input_element = new this(
             style_sheet_manager
         );

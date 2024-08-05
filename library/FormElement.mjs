@@ -57,6 +57,9 @@ export class FormElement extends HTMLElement {
             }
         }
 
+        /**
+         * @type {FormElementWithEvents}
+         */
         const form_element = new this(
             style_sheet_manager
         );
