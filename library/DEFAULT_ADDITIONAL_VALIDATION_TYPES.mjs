@@ -7,7 +7,7 @@ import { ADDITIONAL_VALIDATION_TYPE_REGULAR_EXPRESSION } from "./ADDITIONAL_VALI
  * @param {boolean | null} value_with_slashes
  * @returns {Promise<RegExp | null>}
  */
-export async function valueToRegExp(value = null, value_with_slashes = null) {
+export async function valueToRegularExpression(value = null, value_with_slashes = null) {
     if ((value ?? "") === "") {
         return null;
     }
@@ -53,7 +53,7 @@ export async function validateRegularExpressionValue(value = null) {
     }
 
     try {
-        await valueToRegExp(
+        await valueToRegularExpression(
             value
         );
     } catch (error) {

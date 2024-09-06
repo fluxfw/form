@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-09-06-1
+
+Changes:
+
+- Rename regular expression
+
 ## v2024-08-05-2
 
 Changes:
