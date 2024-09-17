@@ -4,7 +4,7 @@ import root_css from "./InputElementRoot.css" with { type: "css" };
 import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_COLOR, INPUT_TYPE_DATE, INPUT_TYPE_DATETIME_LOCAL, INPUT_TYPE_ENTRIES, INPUT_TYPE_HIDDEN, INPUT_TYPE_NUMBER, INPUT_TYPE_PASSWORD, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA, INPUT_TYPE_TIME } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Input.mjs").Input} Input */
-/** @typedef {import("./_InputElement.mjs")._InputElement} _InputElement */
+/** @typedef {import("./_InputElement.mjs").InputElement} _InputElement */
 /** @typedef {import("./InputElementWithEvents.mjs").InputElementWithEvents} InputElementWithEvents */
 /** @typedef {import("./InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
